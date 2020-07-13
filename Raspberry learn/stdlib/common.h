@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/times.h>
 #include <sys/types.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
@@ -31,6 +32,8 @@ typedef U_PTR               ULONG;
 typedef long long           LLONG;
 typedef unsigned long long  ULLONG;
 typedef void                VOID;
+typedef double              DOUBLE;
+typedef float               FLOAT;
 #define DBG_INFO
 #ifdef DBG_INFO
 #define DBG(fmt, ...) printf("%s()[%d] [" fmt "]\n",__FUNCTION__, __LINE__,##__VA_ARGS__)
@@ -176,13 +179,16 @@ INT32 Cnice(INT32 incr);
 /*
     return value: get nice value, fail return -1
     which: PRIO_PROCESS, PRIO_PGRP, PRIO_USER
-    who:   0, choice whic param, 
+    who:   0, choice whic param 
 */
 INT32 Cgetpriority(INT32 which, id_t who);
 /*
     return ablue: fail -1, success: 0
+    which: PRIO_PROCESS, PRIO_PGRP, PRIO_USER
+    who:   0, choice whic param 
 */
 INT32 Csetpriority(INT32 which, id_t who, INT32 value);
+
 /****************************Kernel Space************************************/
 
 /**

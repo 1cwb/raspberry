@@ -445,6 +445,25 @@ INT32 Cnice(INT32 incr)
     return res;
 }
 
+INT32 Cgetpriority(INT32 which, id_t who)
+{
+    INT32 res = getpriority(which, who);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Csetpriority(INT32 which, id_t who, INT32 value)
+{
+    INT32 res = setpriority(which, who, value);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+
 DIR* Copendir(const CHAR* pathname)
 {
     DIR* dir = opendir(pathname);

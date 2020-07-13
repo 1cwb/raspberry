@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "common.h"
+#include "timemeasure.h"
 #include "msg.h"
 #include "condition.h"
 #include "thread.h"
@@ -157,12 +158,15 @@ VOID* usbEvendListen(VOID* p)
 
 INT32 main()
 {
+    TimeMeasure measure;
+    measure.begin();
     //fork test
     pid_t pid = Cfork();
     if(pid == 0)
     {
         DBG("i am son, my pid is %d", (INT32)Cgetpid());
-        sleep(5);
+        for(INT32 i = 0; i < 99999; i++)
+		DBG("========================");
         C_Exit(0);
        // C_exit(0);
       //  Cexit(0);
@@ -171,13 +175,16 @@ INT32 main()
     siginfo_t siginfo;
     memset(&siginfo,0,sizeof(siginfo));
     DBG("father wait son exit");
+    for(INT32 M = 0; M < 888888; M++)DBG();
     DBG("son exit %d, %s", Cwaitid(P_PID, pid, &siginfo, WEXITED), Cstrerror(getErrno()));
 
-    DBG("%s",Cgetlogin());
+    //DBG("%s",Cgetlogin());
     struct passwd* pwd = Cgetpwuid(Cgetuid());
     DBG("uid is %d",Cgetuid());
     DBG("username is %s,passwd is %s,home dir is %s,shell is %s,user information is %s,uid is %d",pwd->pw_name,pwd->pw_passwd,pwd->pw_dir,pwd->pw_shell,pwd->pw_gecos,pwd->pw_uid);
-
+    measure.end();
+    measure.printAllTime();
+    return 0;
     queue_buf *oled_data = NULL;
     CHAR myTime[32] = {0};
     INT32 UpdataIp = 0;
