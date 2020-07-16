@@ -11,6 +11,7 @@
 #include "oled.h"
 #include "fonts.h"
 #include "cfile.h"
+#include "csignal.h"
 #define MAX_MSG_QUEUE_SIZE 1024
 
 Msg msg_test((char*)"queuetest",MAX_MSG_QUEUE_SIZE,1);
@@ -156,8 +157,18 @@ VOID* usbEvendListen(VOID* p)
     return NULL;
 }
 
+VOID sigtestfunc(INT32 sig)
+{
+    DBG("get signal %d",sig);
+}
+
 INT32 main()
 {
+    DBG("my PID is %d",Cgetpid());
+    Csignal sigtest;
+    sigtest.catchSignal(SIGUSR1,sigtestfunc);
+    sigtest.catchSignal(SIGUSR1,&sigtestfunc);
+    sigtest.catchSignal(SIGUSR2,&sigtestfunc);
     TimeMeasure measure;
     measure.begin();
     queue_buf *oled_data = NULL;
