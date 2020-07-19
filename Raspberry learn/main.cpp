@@ -8,14 +8,18 @@
 #include "thread.h"
 #include "usbEvent.h"
 #include "cfileSys.h"
-#include "oled.h"
 #include "fonts.h"
 #include "cfile.h"
 #include "csignal.h"
+#ifdef OLED_DRIVER_ON
+#include "oled.h"
+#endif
 #define MAX_MSG_QUEUE_SIZE 1024
 
 Msg msg_test((char*)"queuetest",MAX_MSG_QUEUE_SIZE,1);
+#ifdef OLED_DRIVER_ON
 Msg msg_oled((char*)"msg_oled",MAX_MSG_QUEUE_SIZE,1);
+#endif
 
 CfileSys test;
 
@@ -26,7 +30,9 @@ void* usbEvendParse(VOID* p)
     
     cntl_queue_ret msg_cnt = CNTL_QUEUE_INVALIED;
     queue_buf *data1 = NULL;
+    #ifdef OLED_DRIVER_ON
     queue_buf *data_oled = NULL;
+    #endif
     CHAR *filepatch = (CHAR*)malloc(sizeof(CHAR) * FILE_PATCH_LEN);
     struct dirent *file = (struct dirent *)malloc(sizeof(struct dirent) * DIRECTORY_NUM);
     while(msg_cnt != CNTL_QUEUE_CANCEL)
@@ -40,13 +46,15 @@ void* usbEvendParse(VOID* p)
             //DBG("in main data  === NULL");
             continue;
         }
-        //for oled
+    //for oled
+    #ifdef OLED_DRIVER_ON
         data_oled = (queue_buf*)malloc(sizeof(queue_buf));
         if(data_oled != NULL)
         {
             memcpy(data_oled, data1, sizeof(queue_buf));
             msg_oled.push(data_oled, 0, IPC_BLOCK);
-        }     
+        }
+    #endif
         switch(data1->msg_type)
         {
             case MSG_USB_ADD:
@@ -63,6 +71,7 @@ void* usbEvendParse(VOID* p)
                     {
                         if(raspFile.Cfwrite(buff, 1, strlen(buff)) > 0)
                         {
+                        #ifdef OLED_DRIVER_ON
                             data_oled = (queue_buf*)malloc(sizeof(queue_buf));
                             if(data_oled != NULL)
                             {
@@ -70,14 +79,16 @@ void* usbEvendParse(VOID* p)
                                             strlen("Write Msg to Udisk pass") + 1, MSG_WRITE_MSG_TO_DISK_OK);
                                 msg_oled.push(data_oled, 1, IPC_WAITTIMES);
                             }
+                        #endif
                         }
                     }
                     //printf("%s\n",buff);
                     free(buff);
-					
+                #ifdef OLED_DRIVER_ON
                     queue_buf* oled_update_ip = (queue_buf*)malloc(sizeof(queue_buf));
                     msg_oled.formatMsg(oled_update_ip, "", 1, MSG_UPDATE_IP);
                     msg_oled.push(oled_update_ip, 0, IPC_BLOCK);
+                #endif
                     /*Parse_val_t *param = (Parse_val_t*)malloc(sizeof(Parse_val_t) * 100);
                     if(param == NULL)
                     {
@@ -103,13 +114,15 @@ void* usbEvendParse(VOID* p)
                 }
                 else
                 {
-                        data_oled = (queue_buf*)malloc(sizeof(queue_buf));
-                        if(data_oled != NULL)
-                        {
-                            msg_oled.formatMsg(data_oled, "A normal Udisk", 
-                                        strlen("A normal Udisk") + 1, MSG_WRITE_MSG_TO_DISK_FAIL);
-                            msg_oled.push(data_oled, 0, IPC_BLOCK);
-                        }    
+                    #ifdef OLED_DRIVER_ON
+                    data_oled = (queue_buf*)malloc(sizeof(queue_buf));
+                    if(data_oled != NULL)
+                    {
+                        msg_oled.formatMsg(data_oled, "A normal Udisk", 
+                                    strlen("A normal Udisk") + 1, MSG_WRITE_MSG_TO_DISK_FAIL);
+                        msg_oled.push(data_oled, 0, IPC_BLOCK);
+                    }
+                    #endif
                 }
                 break;
             case MSG_USB_REMOVE:
@@ -138,19 +151,17 @@ VOID* usbEvendListen(VOID* p)
         memset(buf, 0, UEVENT_BUFFER_SIZE * sizeof(CHAR));
 		recv(uevent.getSockid(), buf, UEVENT_BUFFER_SIZE, 0);
 		MSG_EVENT event = uevent.getUsbEvent(buf);
-
-	
         data = (queue_buf*)malloc(sizeof(queue_buf));
         if(event == MSG_USB_ADD)
         {
             msg_test.formatMsg(data, "UsbEvent:usb add!", strlen("UsbEvent:usb add!") + 1, event);
-	    msg_test.push(data, 0, IPC_BLOCK);
+	        msg_test.push(data, 0, IPC_BLOCK);
         }
         if(event == MSG_USB_REMOVE)
         {
             msg_test.formatMsg(data, "UsbEvent:usb remove!", strlen("UsbEvent:usb remove!") + 1, event); 
-	    msg_test.push(data, 0, IPC_BLOCK);
-	}
+	        msg_test.push(data, 0, IPC_BLOCK);
+	    }
     }
     free(buf);
     buf = NULL;
@@ -165,30 +176,24 @@ VOID sigtestfunc(INT32 sig)
 INT32 main()
 {
     DBG("my PID is %d",Cgetpid());
-    Csignal sigtest;
-    sigtest.catchSignal(SIGUSR1,sigtestfunc);
-    sigtest.catchSignal(SIGUSR1,&sigtestfunc);
-    sigtest.catchSignal(SIGUSR2,&sigtestfunc);
-    TimeMeasure measure;
-    measure.begin();
+    DBG("Raspberry Service Running!!!");
+#ifdef OLED_DRIVER_ON
     queue_buf *oled_data = NULL;
     CHAR myTime[32] = {0};
     INT32 UpdataIp = 0;
     INT32 defaultTime = 15;
-    DBG("Raspberry Service Running!!!");
     OledRun oled(&msg_oled);
     oled.run();
+#endif
     Thread th_usb_event_listen;
     Thread th_usb_event_parse;
     th_usb_event_listen.setThreadFunc(usbEvendListen, NULL);
     th_usb_event_parse.setThreadFunc(usbEvendParse, NULL);
     th_usb_event_listen.start();
     th_usb_event_parse.start();
-
-    measure.end();
-    measure.printAllTime();
     while(true)
     {
+    #ifdef OLED_DRIVER_ON
         if(UpdataIp > defaultTime)
         {
             UpdataIp = 0;
@@ -205,9 +210,14 @@ INT32 main()
 
         sleep(1);
         UpdataIp ++;
-
+    #endif
+        DBG("Main thread pause!");
+        pause();
     }
     msg_test.setMsgCancel();
+#ifdef OLED_DRIVER_ON
+    msg_oled.setMsgCancel();
+#endif
     th_usb_event_listen.join();
     th_usb_event_parse.join();
 	return 0;

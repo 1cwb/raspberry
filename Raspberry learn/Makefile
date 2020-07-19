@@ -1,9 +1,13 @@
 $(info <---------------------------------------------------------->)
+ifeq ($(OLED_SUPPORT), true) 
+CFLAGS += -DOLED_DRIVER_ON
+$(info <-------------------add oled mode device------------------->)
+endif
 # 指定编译器
 CC = g++
 
 # CFLAG包括头文件目录
-CFLAGS = -g -Wall
+CFLAGS += -g -Wall
 # 头文件查找路径
 INC = -I./ -I./stdlib/ -I./oled/ -I./fonts/
 
