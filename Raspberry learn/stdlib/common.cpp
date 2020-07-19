@@ -2,6 +2,7 @@
 
 #include <sys/time.h>
 #include <sys/ioctl.h>
+#include <sys/mount.h>
 #include <errno.h>
 #include <fcntl.h>
 
@@ -82,8 +83,8 @@ bool GetIPFromIfconfig(const CHAR* cmd_buff, const CHAR* partten, CHAR IP[], INT
         nLen = nend - nstart;
         memcpy(IP, p + nstart, nend - nstart);
         IP[nLen] = ':';
-	IP[++nLen] = '\0';
-	p += nend;
+	    IP[++nLen] = '\0';
+	    p += nend;
         if(FindPattern(p, IP_RULE, nstart, nend))
         {
             DBG("find eth0 IP : nstart is %d, nedn is %d",nstart, nend);
@@ -463,7 +464,33 @@ INT32 Csetpriority(INT32 which, id_t who, INT32 value)
     }
     return res;
 }
-
+INT32 Cmount(const CHAR *source, const CHAR *target, const CHAR *filesystemtype, ULONG mountflags, const VOID *data)
+{
+    INT32 res = mount(source, target, filesystemtype, mountflags, data);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Cumount(const CHAR *target)
+{
+    INT32 res = umount(target);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Cumount2(const CHAR *target, INT32 flags)
+{
+    INT32 res = umount2(target, flags);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
 DIR* Copendir(const CHAR* pathname)
 {
     DIR* dir = opendir(pathname);

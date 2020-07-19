@@ -151,6 +151,7 @@ VOID* usbEvendListen(VOID* p)
         memset(buf, 0, UEVENT_BUFFER_SIZE * sizeof(CHAR));
 		recv(uevent.getSockid(), buf, UEVENT_BUFFER_SIZE, 0);
 		MSG_EVENT event = uevent.getUsbEvent(buf);
+        DBG("%s",buf);
         data = (queue_buf*)malloc(sizeof(queue_buf));
         if(event == MSG_USB_ADD)
         {
