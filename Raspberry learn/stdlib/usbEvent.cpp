@@ -68,7 +68,7 @@ INT32 usbEvent::initHotplugSock(void)
 }
 INT32 usbEvent::getUsbName(const CHAR* path, struct dirent *file,UINT32 num)
 {
-	if(num <= 0 || path == NULL || file == NULL)
+	if(num <= 0 || path == NULL || file == NULL || (Caccess(path, F_OK) < 0))
 	{
 		return -1;
 	}
@@ -89,7 +89,7 @@ INT32 usbEvent::getUsbName(const CHAR* path, struct dirent *file,UINT32 num)
 	return i;
 
 }
-INT32 usbEvent::getRaspCmdFile(struct dirent *file, UINT32 num, /*out*/ CHAR* file_patch, UINT32 file_patch_len)
+INT32 usbEvent::getRaspCmdFile(struct dirent *file, INT32 num, /*out*/ CHAR* file_patch, INT32 file_patch_len)
 {
 	CHAR usb_name[256] = {0};
 	INT32 ret = -1;
@@ -97,7 +97,7 @@ INT32 usbEvent::getRaspCmdFile(struct dirent *file, UINT32 num, /*out*/ CHAR* fi
 	{
 		return -1;
 	}
-	for(UINT32 i = 0; i < num; i++)
+	for(INT32 i = 0; i < num; i++)
 	{
 		if((strcmp((file + i)->d_name, ".") == 0) || (strcmp((file + i)->d_name, "..") == 0))
 		{
@@ -112,7 +112,7 @@ INT32 usbEvent::getRaspCmdFile(struct dirent *file, UINT32 num, /*out*/ CHAR* fi
 		ret = access(usb_name, F_OK | R_OK | W_OK);
 		if(ret == 0)
 		{
-			if(strlen(usb_name) + 1 > file_patch_len)
+			if(strlen(usb_name) + 1 > (UINT32)file_patch_len)
 			{
 				printf("name len is too long\n");
 				return -2;
