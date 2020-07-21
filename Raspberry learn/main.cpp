@@ -25,7 +25,6 @@ CfileSys test;
 
 void* usbEvendParse(VOID* p)
 {
-    INT32 num = -1;
     INT32 state = -1;
     
     cntl_queue_ret msg_cnt = CNTL_QUEUE_INVALIED;
@@ -34,11 +33,9 @@ void* usbEvendParse(VOID* p)
     queue_buf *data_oled = NULL;
     #endif
     CHAR *filepatch = (CHAR*)malloc(sizeof(CHAR) * FILE_PATCH_LEN);
-    struct dirent *file = (struct dirent *)malloc(sizeof(struct dirent) * DIRECTORY_NUM);
     while(msg_cnt != CNTL_QUEUE_CANCEL)
     {
         msg_cnt = msg_test.pop((VOID**)&data1,0, IPC_BLOCK);
-        memset(file, 0, sizeof(struct dirent) * DIRECTORY_NUM);
         memset(filepatch, 0, FILE_PATCH_LEN);
 	
         if(data1 == NULL)
@@ -59,9 +56,11 @@ void* usbEvendParse(VOID* p)
         {
             case MSG_USB_ADD:
                 DBG("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
-                sleep(1);
-                num = usbEvent::getUsbName("/media/pi/", file,DIRECTORY_NUM);
-                state = usbEvent::getRaspCmdFile(file, num, filepatch, FILE_PATCH_LEN);
+                //sleep(1);
+                strcat(filepatch,data1->msg_buf);
+                strcat(filepatch,RASPBERRY_COMMAND);
+                DBG("path name is %s",filepatch);
+                state = Caccess(filepatch, F_OK);
                 if(state == 0)
                 {
                     CHAR* buff = (char*)malloc(2098);
@@ -71,6 +70,7 @@ void* usbEvendParse(VOID* p)
                     {
                         if(raspFile.Cfwrite(buff, 1, strlen(buff)) > 0)
                         {
+                            DBG("Write IP to %s successful!", filepatch);
                         #ifdef OLED_DRIVER_ON
                             data_oled = (queue_buf*)malloc(sizeof(queue_buf));
                             if(data_oled != NULL)
@@ -82,7 +82,6 @@ void* usbEvendParse(VOID* p)
                         #endif
                         }
                     }
-                    //printf("%s\n",buff);
                     free(buff);
                 #ifdef OLED_DRIVER_ON
                     queue_buf* oled_update_ip = (queue_buf*)malloc(sizeof(queue_buf));
@@ -134,9 +133,7 @@ void* usbEvendParse(VOID* p)
         data1 = NULL;
     }
     free(filepatch);
-    free(file);
     filepatch = NULL;
-    file = NULL;
     return NULL;
 }
 
@@ -152,19 +149,21 @@ VOID* usbEvendListen(VOID* p)
         memset(usb_patch_name, 0, USB_PATCH_NAME_LEN * sizeof(CHAR));
 		recv(uevent.getSockid(), buf, UEVENT_BUFFER_SIZE, 0);
 		MSG_EVENT event = uevent.getUsbEvent(buf, usb_patch_name, USB_PATCH_NAME_LEN);
-        //DBG("%s",buf);
         data = (queue_buf*)malloc(sizeof(queue_buf));
         switch (event)
         {
             case MSG_USB_ADD:
-                msg_test.formatMsg(data, "UsbEvent:usb add!", strlen("UsbEvent:usb add!") + 1, event);
+                msg_test.formatMsg(data, usb_patch_name, strlen(usb_patch_name) + 1, event);
                 msg_test.push(data, 0, IPC_BLOCK);
+                uevent.showAllUsbPath();
                 break;
             case MSG_USB_NOT_MOUNTED:
+                DBG("usb incerted but not mounted");
                 break;
             case MSG_USB_REMOVE:
                 msg_test.formatMsg(data, "UsbEvent:usb remove!", strlen("UsbEvent:usb remove!") + 1, event); 
 	            msg_test.push(data, 0, IPC_BLOCK);
+                uevent.showAllUsbPath();
                 break;
             default: break;
         }

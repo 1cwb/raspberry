@@ -10,10 +10,51 @@ usbEvent::usbEvent() : sockid(-1)
     {
         printf("create usbEvent fail\n");
     }
+	memset(usb_path_info, 0, sizeof(usb_path_info));
 }
 usbEvent::~usbEvent()
 {
     close(sockid);
+}
+bool usbEvent::addUsb(const CHAR* dev_name, const CHAR* path_name)
+{
+	for(INT32 i = 0; i < MAX_USB_DEV_NUM; i++)
+	{
+		if(usb_path_info[i].beused == false)
+		{
+			memcpy(usb_path_info[i].dev, dev_name, strlen(dev_name) + 1);
+			memcpy(usb_path_info[i].path_name, path_name, strlen(path_name) + 1);
+			usb_path_info[i].beused = true;
+			return true;
+		}
+	}
+	DBG("Err: there is no enough space to save usb dev");
+	return false;
+}
+bool usbEvent::removeUsb(const CHAR* dev_name)
+{
+    for(INT32 i = 0; i < MAX_USB_DEV_NUM; i++)
+	{
+		if((usb_path_info[i].beused == true) && (strcmp(dev_name,usb_path_info[i].dev) == 0))
+		{
+            memset(&usb_path_info[i], 0, sizeof(usb_device_t));
+			usb_path_info[i].beused = false;
+			DBG("Remove %s successful",dev_name);
+			return true;
+		}
+	}
+	DBG("Err: remove %s fail, can not find it!",dev_name);
+	return false;
+}
+VOID usbEvent::showAllUsbPath()
+{
+	for(INT32 i = 0; i < MAX_USB_DEV_NUM; i++)
+	{
+		if(usb_path_info[i].beused)
+		{
+           printf("Usb Dev is %s, path name is %s\n",usb_path_info[i].dev,usb_path_info[i].path_name);
+		}
+	}
 }
 MSG_EVENT usbEvent::getUsbEvent(const CHAR* buf, CHAR* usb_patch_name, INT32 len)
 {
@@ -41,11 +82,12 @@ MSG_EVENT usbEvent::getUsbEvent(const CHAR* buf, CHAR* usb_patch_name, INT32 len
 				{
                     if(FindPattern(file_line, usb_data, nStart, nEnd))
 					{
-                        if(FindPattern(file_line, " /[A-Za-z0-9_/]+ ", nStart, nEnd))
+                        if(FindPattern(file_line, " /[\\S/]+ ", nStart, nEnd))
 						{
                             memcpy(usb_patch_name ,file_line + nStart + 1, nEnd - nStart - 2);
 			                usb_patch_name[nEnd - 2] = '\0';
-							DBG("add usb[%s] add usb patch name is %s",usb_data,usb_patch_name);
+							addUsb(usb_data, usb_patch_name);
+							//DBG("add usb[%s] add usb patch name is %s",usb_data,usb_patch_name);
                             event = MSG_USB_ADD;
 						    break;
 						}
@@ -59,11 +101,12 @@ MSG_EVENT usbEvent::getUsbEvent(const CHAR* buf, CHAR* usb_patch_name, INT32 len
 	}
 	else if(strstr(buf,"remove")!= NULL)
 	{
-        if(FindPattern(buf, "sd[a-z]/sd[a-z][0-9]", nStart, nEnd))
+        if(FindPattern(buf, "sd[a-z][0-9]", nStart, nEnd))
 	    {
 			memcpy(usb_data ,buf + nStart, nEnd - nStart);
 			usb_data[nEnd] = '\0';
-            printf("remove usb[%s] now!!!\n",usb_data);
+			removeUsb(usb_data);
+            //printf("remove usb[%s] now!!!\n",usb_data);
             return MSG_USB_REMOVE;
 	    }
 	}
@@ -87,7 +130,8 @@ INT32 usbEvent::initHotplugSock(void)
     /* set receive buffersize */
     setsockopt(hotplug_sock, SOL_SOCKET, SO_RCVBUFFORCE, &buffersize, sizeof(buffersize));
     retval = bind(hotplug_sock, (struct sockaddr *) &snl, sizeof(struct sockaddr_nl));
-    if (retval < 0) {
+    if (retval < 0) 
+	{
         printf("bind failed: %s", strerror(errno));
         close(hotplug_sock);
         hotplug_sock = -1;
@@ -96,65 +140,7 @@ INT32 usbEvent::initHotplugSock(void)
     return hotplug_sock;
 
 }
-INT32 usbEvent::getUsbName(const CHAR* path, struct dirent *file,UINT32 num)
-{
-	if(num <= 0 || path == NULL || file == NULL || (Caccess(path, F_OK) < 0))
-	{
-		return -1;
-	}
-	DIR* dp = NULL;
-	UINT32 i = 0;
-	struct dirent *filename = NULL;
-	if((dp = opendir(path)) == NULL)
-	{
-		return -1;
-	}
-	while(((filename = readdir(dp)) != NULL) && (i < num))
-	{
-		printf("dirname: %s\n",filename->d_name);
-		memcpy(file+i, filename, sizeof(struct dirent));
-		i ++;
-	}
-	closedir(dp);
-	return i;
 
-}
-INT32 usbEvent::getRaspCmdFile(struct dirent *file, INT32 num, /*out*/ CHAR* file_patch, INT32 file_patch_len)
-{
-	CHAR usb_name[256] = {0};
-	INT32 ret = -1;
-	if(file == NULL || num <= 0 || file_patch == NULL || file_patch_len <= 0)
-	{
-		return -1;
-	}
-	for(INT32 i = 0; i < num; i++)
-	{
-		if((strcmp((file + i)->d_name, ".") == 0) || (strcmp((file + i)->d_name, "..") == 0))
-		{
-			continue;
-		}
-		memset(usb_name, 0, sizeof(usb_name));
-		strcat(usb_name,"/media/pi/");
-		memcpy(usb_name + strlen("/media/pi/"), (file + i)->d_name, strlen((file + i)->d_name)+1);
-		strcat(usb_name, "/");
-		strcat(usb_name,RASPBERRY_COMMAND);
-		printf("%s\n",usb_name);
-		ret = access(usb_name, F_OK | R_OK | W_OK);
-		if(ret == 0)
-		{
-			if(strlen(usb_name) + 1 > (UINT32)file_patch_len)
-			{
-				printf("name len is too long\n");
-				return -2;
-			}
-			memcpy(file_patch, usb_name, strlen(usb_name) + 1);
-			printf("find %s\n",RASPBERRY_COMMAND);
-			return 0;
-		}
-	}
-		return -1;
-
-}
 INT32 usbEvent::getSockid()
 {
     return sockid;

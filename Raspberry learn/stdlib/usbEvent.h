@@ -15,7 +15,7 @@
 #include "common.h"
 
 #define USB_MOUNT_INFO    "/proc/mounts"
-#define RASPBERRY_COMMAND "RASPBERRY_CMD/Raspberry.cmd"
+#define RASPBERRY_COMMAND "/RASPBERRY_CMD/Raspberry.cmd"
 
 #define UEVENT_BUFFER_SIZE 1024
 #define FILE_LINE_LEN 512
@@ -23,6 +23,7 @@
 #define FILE_PATCH_LEN 256
 #define USB_SDX_LEN 16
 #define USB_PATCH_NAME_LEN 128
+#define MAX_USB_DEV_NUM  12
 typedef enum
 {
 GET_IP,
@@ -36,6 +37,12 @@ typedef struct
     PARSE_TYPE type;
     CHAR param[128];
 }Parse_val_t;
+typedef struct usb_dev
+{
+    CHAR dev[USB_SDX_LEN];
+    CHAR path_name[USB_PATCH_NAME_LEN];
+    bool beused;
+}usb_device_t;
 
 class usbEvent
 {
@@ -44,15 +51,16 @@ public:
     ~usbEvent();
     MSG_EVENT getUsbEvent(const CHAR* buf, CHAR* usb_patch_name, INT32 len);
     INT32 initHotplugSock(VOID);
-    static INT32 getUsbName(const CHAR* path, struct dirent *file,UINT32 num);
-    static INT32 getRaspCmdFile(struct dirent *file, INT32 num, /*out*/ CHAR* file_patch, INT32 file_patch_len);
     static bool parseRaspFile(const CHAR* patch, Parse_val_t* param, INT32 len);
     static INT32 readLine(FILE* fd, CHAR* data, INT32 len);
     bool getUSBPatchName(CHAR* usb_patch_name, INT32 len);
     INT32 getSockid();
-
+    VOID showAllUsbPath();
 private:
+    bool addUsb(const CHAR* dev_name, const CHAR* path_name);
+    bool removeUsb(const CHAR* dev_name);
     INT32 sockid;
+    usb_device_t usb_path_info[MAX_USB_DEV_NUM];
 };
 
 
