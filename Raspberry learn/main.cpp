@@ -144,25 +144,30 @@ VOID* usbEvendListen(VOID* p)
 {
     usbEvent uevent;
     queue_buf *data = NULL;
-
+    CHAR usb_patch_name[USB_PATCH_NAME_LEN] = {0};
     CHAR *buf = (char*)malloc(sizeof(CHAR) * UEVENT_BUFFER_SIZE);
     while(true)
     {
         memset(buf, 0, UEVENT_BUFFER_SIZE * sizeof(CHAR));
+        memset(usb_patch_name, 0, USB_PATCH_NAME_LEN * sizeof(CHAR));
 		recv(uevent.getSockid(), buf, UEVENT_BUFFER_SIZE, 0);
-		MSG_EVENT event = uevent.getUsbEvent(buf);
-        DBG("%s",buf);
+		MSG_EVENT event = uevent.getUsbEvent(buf, usb_patch_name, USB_PATCH_NAME_LEN);
+        //DBG("%s",buf);
         data = (queue_buf*)malloc(sizeof(queue_buf));
-        if(event == MSG_USB_ADD)
+        switch (event)
         {
-            msg_test.formatMsg(data, "UsbEvent:usb add!", strlen("UsbEvent:usb add!") + 1, event);
-	        msg_test.push(data, 0, IPC_BLOCK);
+            case MSG_USB_ADD:
+                msg_test.formatMsg(data, "UsbEvent:usb add!", strlen("UsbEvent:usb add!") + 1, event);
+                msg_test.push(data, 0, IPC_BLOCK);
+                break;
+            case MSG_USB_NOT_MOUNTED:
+                break;
+            case MSG_USB_REMOVE:
+                msg_test.formatMsg(data, "UsbEvent:usb remove!", strlen("UsbEvent:usb remove!") + 1, event); 
+	            msg_test.push(data, 0, IPC_BLOCK);
+                break;
+            default: break;
         }
-        if(event == MSG_USB_REMOVE)
-        {
-            msg_test.formatMsg(data, "UsbEvent:usb remove!", strlen("UsbEvent:usb remove!") + 1, event); 
-	        msg_test.push(data, 0, IPC_BLOCK);
-	    }
     }
     free(buf);
     buf = NULL;

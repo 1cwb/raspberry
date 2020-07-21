@@ -1,5 +1,6 @@
 #include "usbEvent.h"
 #include "common.h"
+#include "cfile.h"
 #include "deelx.h"
 
 usbEvent::usbEvent() : sockid(-1)
@@ -14,30 +15,59 @@ usbEvent::~usbEvent()
 {
     close(sockid);
 }
-MSG_EVENT usbEvent::getUsbEvent(const char* buf)
+MSG_EVENT usbEvent::getUsbEvent(const CHAR* buf, CHAR* usb_patch_name, INT32 len)
 {
-	const CHAR* p = NULL;
-	if((p = strstr(buf,"add"))!= NULL)
+	INT32 nStart = 0;
+	INT32 nEnd   = 0;
+	Cfile mfile;
+	CHAR file_line[FILE_LINE_LEN] = {0};
+	CHAR usb_data[USB_SDX_LEN] = {0};
+	MSG_EVENT event = MSG_INVALIED;
+	if(len < USB_PATCH_NAME_LEN)
 	{
-		if(((p = strstr(buf,"sda/sda"))!= NULL) || 
-			((p = strstr(buf,"sdb/sdb"))!= NULL) || 
-				((p = strstr(buf,"sdc/sdc"))!= NULL) || 
-					((p = strstr(buf,"sdd/sdd"))!= NULL))
-		{
-			printf("add usb now!!!\n");
-			return MSG_USB_ADD;
-		}
+		DBG("Error: usb_data len is short than 128!");
+		return event;
 	}
-	else if((p = strstr(buf,"remove"))!= NULL)
+	if(strstr(buf,"add")!= NULL)
 	{
-		if(((p = strstr(buf,"sda/sda"))!= NULL) ||
-			((p = strstr(buf,"sdb/sdb"))!= NULL) ||
-				((p = strstr(buf,"sdc/sdc"))!= NULL) ||
-					((p = strstr(buf,"sdd/sdd"))!= NULL) )
-		return MSG_USB_REMOVE;
+        if(FindPattern(buf, "sd[a-z][0-9]", nStart, nEnd))
+	    {
+			memcpy(usb_data ,buf + nStart, nEnd - nStart);
+			usb_data[nEnd] = '\0';
+			sync();
+            if(mfile.Cfopen(USB_MOUNT_INFO, "rb"))
+			{
+				while(mfile.Cfgets(file_line, sizeof(file_line)) != NULL && !mfile.Cfeof())
+				{
+                    if(FindPattern(file_line, usb_data, nStart, nEnd))
+					{
+                        if(FindPattern(file_line, " /[A-Za-z0-9_/]+ ", nStart, nEnd))
+						{
+                            memcpy(usb_patch_name ,file_line + nStart + 1, nEnd - nStart - 2);
+			                usb_patch_name[nEnd - 2] = '\0';
+							DBG("add usb[%s] add usb patch name is %s",usb_data,usb_patch_name);
+                            event = MSG_USB_ADD;
+						    break;
+						}
+					}
+					memset(file_line, FILE_LINE_LEN * sizeof(CHAR), sizeof(file_line));
+				}
+			}
+			mfile.Cfclose();
+            return event == MSG_USB_ADD ? MSG_USB_ADD : MSG_USB_NOT_MOUNTED;
+	    }
+	}
+	else if(strstr(buf,"remove")!= NULL)
+	{
+        if(FindPattern(buf, "sd[a-z]/sd[a-z][0-9]", nStart, nEnd))
+	    {
+			memcpy(usb_data ,buf + nStart, nEnd - nStart);
+			usb_data[nEnd] = '\0';
+            printf("remove usb[%s] now!!!\n",usb_data);
+            return MSG_USB_REMOVE;
+	    }
 	}
 	return MSG_UNKNOW_EVENT;
-
 }
 INT32 usbEvent::initHotplugSock(void)
 {
