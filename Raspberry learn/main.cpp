@@ -22,8 +22,36 @@ Msg msg_oled((char*)"msg_oled",MAX_MSG_QUEUE_SIZE,1);
 #endif
 
 CfileSys test;
-
-void* usbEvendParse(VOID* p)
+VOID* parseIniFile(VOID* p)
+{
+    if(p == NULL)
+    {
+        return NULL;
+    }
+    CHAR* fileName = (CHAR*) p;
+    CHAR* buff = (char*)malloc(2098);
+    DoComman("ifconfig", "r", buff, 2098);
+    Cfile raspFile(fileName, "w");
+    if(raspFile.isFileopenSuccess())
+    {
+        if(raspFile.Cfwrite(buff, 1, strlen(buff)) > 0)
+        {
+            DBG("Write IP to %s successful!", fileName);
+        #ifdef OLED_DRIVER_ON
+            data_oled = (queue_buf*)malloc(sizeof(queue_buf));
+            if(data_oled != NULL)
+            {
+                msg_oled.formatMsg(data_oled, "Write Msg to Udisk pass", 
+                            strlen("Write Msg to Udisk pass") + 1, MSG_WRITE_MSG_TO_DISK_OK);
+                msg_oled.push(data_oled, 1, IPC_WAITTIMES);
+            }
+        #endif
+        }
+    }
+    free(buff);
+    return NULL;
+}
+VOID* usbEvendParse(VOID* p)
 {
     INT32 state = -1;
     
@@ -56,33 +84,15 @@ void* usbEvendParse(VOID* p)
         {
             case MSG_USB_ADD:
                 DBG("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
-                //sleep(1);
                 strcat(filepatch,data1->msg_buf);
                 strcat(filepatch,RASPBERRY_COMMAND);
                 DBG("path name is %s",filepatch);
                 state = Caccess(filepatch, F_OK);
                 if(state == 0)
                 {
-                    CHAR* buff = (char*)malloc(2098);
-                    DoComman("ifconfig", "r", buff, 2098);
-                    Cfile raspFile(filepatch, "w");
-                    if(raspFile.isFileopenSuccess())
-                    {
-                        if(raspFile.Cfwrite(buff, 1, strlen(buff)) > 0)
-                        {
-                            DBG("Write IP to %s successful!", filepatch);
-                        #ifdef OLED_DRIVER_ON
-                            data_oled = (queue_buf*)malloc(sizeof(queue_buf));
-                            if(data_oled != NULL)
-                            {
-                                msg_oled.formatMsg(data_oled, "Write Msg to Udisk pass", 
-                                            strlen("Write Msg to Udisk pass") + 1, MSG_WRITE_MSG_TO_DISK_OK);
-                                msg_oled.push(data_oled, 1, IPC_WAITTIMES);
-                            }
-                        #endif
-                        }
-                    }
-                    free(buff);
+                    Thread parseIni;
+                    parseIni.setThreadFunc(parseIniFile,filepatch);
+                    parseIni.start();
                 #ifdef OLED_DRIVER_ON
                     queue_buf* oled_update_ip = (queue_buf*)malloc(sizeof(queue_buf));
                     msg_oled.formatMsg(oled_update_ip, "", 1, MSG_UPDATE_IP);
@@ -215,9 +225,10 @@ INT32 main()
 
         sleep(1);
         UpdataIp ++;
-    #endif
+    #else
         DBG("Main thread pause!");
         pause();
+    #endif
     }
     msg_test.setMsgCancel();
 #ifdef OLED_DRIVER_ON
