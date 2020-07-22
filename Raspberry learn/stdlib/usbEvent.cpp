@@ -66,48 +66,50 @@ MSG_EVENT usbEvent::getUsbEvent(const CHAR* buf, CHAR* usb_patch_name, INT32 len
 	MSG_EVENT event = MSG_INVALIED;
 	if(len < USB_PATCH_NAME_LEN)
 	{
-		DBG("Error: usb_data len is short than 128!");
-		return event;
+	    DBG("Error: usb_data len is short than 128!");
+	    return event;
 	}
 	if(strstr(buf,"add")!= NULL)
 	{
-        if(FindPattern(buf, "sd[a-z][0-9]", nStart, nEnd))
+            if(FindPattern(buf, "sd[a-z][0-9]", nStart, nEnd))
 	    {
-			memcpy(usb_data ,buf + nStart, nEnd - nStart);
-			usb_data[nEnd] = '\0';
-			sync();
-            if(mfile.Cfopen(USB_MOUNT_INFO, "rb"))
+                memcpy(usb_data ,buf + nStart, nEnd - nStart);
+                usb_data[nEnd] = '\0';
+		sleep(1);
+                sync();
+                if(mfile.Cfopen(USB_MOUNT_INFO, "rb"))
+		{
+		    while(mfile.Cfgets(file_line, sizeof(file_line)) != NULL && !mfile.Cfeof())
+		    {
+			//DBG("%s",file_line);
+                        if(FindPattern(file_line, usb_data, nStart, nEnd))
 			{
-				while(mfile.Cfgets(file_line, sizeof(file_line)) != NULL && !mfile.Cfeof())
-				{
-                    if(FindPattern(file_line, usb_data, nStart, nEnd))
-					{
-                        if(FindPattern(file_line, " /[\\S/]+ ", nStart, nEnd))
-						{
-                            memcpy(usb_patch_name ,file_line + nStart + 1, nEnd - nStart - 2);
-			                usb_patch_name[nEnd - 2] = '\0';
-							addUsb(usb_data, usb_patch_name);
-							//DBG("add usb[%s] add usb patch name is %s",usb_data,usb_patch_name);
-                            event = MSG_USB_ADD;
-						    break;
-						}
-					}
-					memset(file_line, FILE_LINE_LEN * sizeof(CHAR), sizeof(file_line));
-				}
+                            if(FindPattern(file_line, " /[\\S/]+ ", nStart, nEnd))
+			    {
+                                memcpy(usb_patch_name ,file_line + nStart + 1, nEnd - nStart - 2);
+			        usb_patch_name[nEnd - 2] = '\0';
+				addUsb(usb_data, usb_patch_name);
+				//DBG("add usb[%s] add usb patch name is %s",usb_data,usb_patch_name);
+                                event = MSG_USB_ADD;
+				break;
+			    }
 			}
-			mfile.Cfclose();
-            return event == MSG_USB_ADD ? MSG_USB_ADD : MSG_USB_NOT_MOUNTED;
+			memset(file_line, FILE_LINE_LEN * sizeof(CHAR), sizeof(file_line));
+		    }
+		}
+		mfile.Cfclose();
+                return event == MSG_USB_ADD ? MSG_USB_ADD : MSG_USB_NOT_MOUNTED;
 	    }
 	}
 	else if(strstr(buf,"remove")!= NULL)
 	{
-        if(FindPattern(buf, "sd[a-z][0-9]", nStart, nEnd))
+            if(FindPattern(buf, "sd[a-z][0-9]", nStart, nEnd))
 	    {
-			memcpy(usb_data ,buf + nStart, nEnd - nStart);
-			usb_data[nEnd] = '\0';
-			removeUsb(usb_data);
-            //printf("remove usb[%s] now!!!\n",usb_data);
-            return MSG_USB_REMOVE;
+		memcpy(usb_data ,buf + nStart, nEnd - nStart);
+		usb_data[nEnd] = '\0';
+		removeUsb(usb_data);
+                //printf("remove usb[%s] now!!!\n",usb_data);
+                return MSG_USB_REMOVE;
 	    }
 	}
 	return MSG_UNKNOW_EVENT;
