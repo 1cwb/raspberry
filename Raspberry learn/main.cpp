@@ -38,6 +38,7 @@ VOID* parseIniFile(VOID* p)
         {
             DBG("Write IP to %s successful!", fileName);
         #ifdef OLED_DRIVER_ON
+    queue_buf *data_oled = NULL;
             data_oled = (queue_buf*)malloc(sizeof(queue_buf));
             if(data_oled != NULL)
             {
