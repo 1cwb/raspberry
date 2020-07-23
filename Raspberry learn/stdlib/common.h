@@ -62,7 +62,7 @@ bool FindPattern(const CHAR* pContent, const CHAR* pPattern, INT32 &nStart, INT3
 bool DoComman(const CHAR* cmd, const CHAR* type, CHAR* result, size_t len);
 bool GetIPFromIfconfig(const CHAR* cmd_buff, const CHAR* partten, CHAR IP[], INT32 IP_len);
 bool getLocalTime(CHAR* mtime, INT32 len);
-
+bool RemoveCRLF(CHAR* data);
 /*
  *These functhion is Linux Kernel space function
 */

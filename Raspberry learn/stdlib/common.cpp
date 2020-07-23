@@ -97,7 +97,26 @@ bool GetIPFromIfconfig(const CHAR* cmd_buff, const CHAR* partten, CHAR IP[], INT
     DBG("parse ip fail");
     return false;
 }
-
+bool RemoveCRLF(CHAR* data)
+{
+    if(data == NULL)
+    {
+        return false;
+    }
+    CHAR* p = NULL;
+    if((p = strchr(data, '\r')) != NULL)
+    {
+        *p = '\0';
+    }
+    else
+    {
+        if((p = strchr(data, '\n')) != NULL)
+        {
+            *p = '\0';
+        }
+    }
+    return true;
+}
 /*
 错误——返回-1，具体错误码保存在errno中
 

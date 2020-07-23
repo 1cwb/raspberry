@@ -28,28 +28,79 @@ VOID* parseIniFile(VOID* p)
     {
         return NULL;
     }
-    CHAR* fileName = (CHAR*) p;
-    CHAR* buff = (char*)malloc(2098);
-    DoComman("ifconfig", "r", buff, 2098);
-    Cfile raspFile(fileName, "w");
-    if(raspFile.isFileopenSuccess())
+    CHAR fileName[128] = {0};
+    CHAR resultFileName[128] = {0};
+    CHAR cmdBuff[128] = {0};
+    CHAR* resultBuff = (CHAR*)malloc(2098);
+ 
+    CMD_TYPE dataTYpe = RASPBERRY_INVAILED_EM;
+    strcat(fileName, (CHAR*) p);
+    strcat(fileName,RASPBERRY_COMMAND);
+    strcat(resultFileName, (CHAR*) p);
+    strcat(resultFileName,RASPBERRY_IP_FILE);
+    if(Caccess(fileName, F_OK) == 0)
     {
-        if(raspFile.Cfwrite(buff, 1, strlen(buff)) > 0)
+        DBG("OPEN CMD FILE %s",fileName);
+        DBG("OPEN RESULT FILE %s",resultFileName);
+        Cfile raspFile(fileName, "rb");
+        Cfile resutFile(resultFileName, "ab+");
+        DBG("%s",Cstrerror(getErrno()));
+        if(raspFile.isFileopenSuccess())
         {
-            DBG("Write IP to %s successful!", fileName);
-        #ifdef OLED_DRIVER_ON
-    queue_buf *data_oled = NULL;
-            data_oled = (queue_buf*)malloc(sizeof(queue_buf));
-            if(data_oled != NULL)
+            while(raspFile.Cfgets(cmdBuff,sizeof(cmdBuff)) != NULL && !raspFile.Cfeof())
             {
-                msg_oled.formatMsg(data_oled, "Write Msg to Udisk pass", 
-                            strlen("Write Msg to Udisk pass") + 1, MSG_WRITE_MSG_TO_DISK_OK);
-                msg_oled.push(data_oled, 1, IPC_WAITTIMES);
+                RemoveCRLF(cmdBuff);
+                DBG("%s",cmdBuff);
+                if(strncmp(cmdBuff,RASPBERRY_SYS_CMD, strlen(RASPBERRY_SYS_CMD)) == 0)
+                {
+                    dataTYpe = RASPBERRY_SYS_CMD_EM;
+                    memset(cmdBuff, 0, sizeof(cmdBuff));
+                    continue;
+                }
+                else if(strncmp(cmdBuff,RASPBERRY_UPDATE_VALUE, strlen(RASPBERRY_UPDATE_VALUE)) == 0)
+                {
+                    dataTYpe = RASPBERRY_UPDATE_VALUE_EM;
+                    memset(cmdBuff, 0, sizeof(cmdBuff));
+                    continue;
+                }
+                
+                switch(dataTYpe)
+                {
+                    case RASPBERRY_SYS_CMD_EM:
+                        DBG("RUN SYSTEM COMMAND");  
+                        if(!DoComman(cmdBuff, "r", resultBuff, 2098))
+                        {
+                            DBG("%s",Cstrerror(getErrno()));
+                        }
+                        DBG("%s",resultBuff);
+                        if(resutFile.isFileopenSuccess())
+                        {
+                            resutFile.Cfwrite(resultBuff, 1, strlen(resultBuff));
+                        }
+                        memset(resultBuff, 0, sizeof(CHAR)*2098);
+                        break;
+                    case RASPBERRY_UPDATE_VALUE_EM:
+                        DBG("CASE 2");
+                        break;
+                    default: break;
+                }
+                memset(cmdBuff, 0, sizeof(cmdBuff));
             }
-        #endif
         }
+        raspFile.Cfclose();
+        resutFile.Cfclose();
+    }  
+    #ifdef OLED_DRIVER_ON
+    queue_buf *data_oled = NULL;
+    data_oled = (queue_buf*)malloc(sizeof(queue_buf));
+    if(data_oled != NULL)
+    {
+        msg_oled.formatMsg(data_oled, "Write Msg to Udisk pass", 
+                    strlen("Write Msg to Udisk pass") + 1, MSG_WRITE_MSG_TO_DISK_OK);
+        msg_oled.push(data_oled, 1, IPC_WAITTIMES);
     }
-    free(buff);
+    #endif
+    free(resultBuff);
     return NULL;
 }
 VOID* usbEvendParse(VOID* p)
@@ -61,7 +112,7 @@ VOID* usbEvendParse(VOID* p)
     #ifdef OLED_DRIVER_ON
     queue_buf *data_oled = NULL;
     #endif
-    CHAR *filepatch = (CHAR*)malloc(sizeof(CHAR) * FILE_PATCH_LEN);
+    CHAR filepatch[FILE_PATCH_LEN] = {0};
     while(msg_cnt != CNTL_QUEUE_CANCEL)
     {
         msg_cnt = msg_test.pop((VOID**)&data1,0, IPC_BLOCK);
@@ -86,8 +137,8 @@ VOID* usbEvendParse(VOID* p)
             case MSG_USB_ADD:
                 DBG("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
                 strcat(filepatch,data1->msg_buf);
-                strcat(filepatch,RASPBERRY_COMMAND);
-                DBG("path name is %s",filepatch);
+                strcat(filepatch,RASPBERRY_PATH);
+                //DBG("path name is %s",filepatch);
                 state = Caccess(filepatch, F_OK);
                 if(state == 0)
                 {
@@ -143,8 +194,6 @@ VOID* usbEvendParse(VOID* p)
         free(data1);
         data1 = NULL;
     }
-    free(filepatch);
-    filepatch = NULL;
     return NULL;
 }
 
