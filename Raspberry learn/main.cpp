@@ -50,7 +50,6 @@ VOID* parseIniFile(VOID* p)
             while(raspFile.Cfgets(cmdBuff,sizeof(cmdBuff)) != NULL && !raspFile.Cfeof())
             {
                 RemoveCRLF(cmdBuff);
-                DBG("%s",cmdBuff);
                 if(strncmp(cmdBuff,RASPBERRY_SYS_CMD, strlen(RASPBERRY_SYS_CMD)) == 0)
                 {
                     dataTYpe = RASPBERRY_SYS_CMD_EM;
@@ -72,7 +71,6 @@ VOID* parseIniFile(VOID* p)
                         {
                             DBG("%s",Cstrerror(getErrno()));
                         }
-                        DBG("%s",resultBuff);
                         if(resutFile.isFileopenSuccess())
                         {
                             resutFile.Cfwrite(resultBuff, 1, strlen(resultBuff));
