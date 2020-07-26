@@ -72,14 +72,14 @@ bool GetIPFromIfconfig(const CHAR* cmd_buff, const CHAR* partten, CHAR IP[], INT
 {
     if(IP_len < 24)
     {
-        DBG("IP[] len is too short!");
+        //DBG("IP[] len is too short!");
         return false;
     }
     const CHAR* p = cmd_buff;
     INT32 nstart = 0, nend = 0, nLen = 0;
     if(FindPattern(p, partten, nstart, nend))
     {
-        DBG("find eth0: nstart is %d, nedn is %d",nstart, nend);
+        //DBG("find eth0: nstart is %d, nedn is %d",nstart, nend);
         nLen = nend - nstart;
         memcpy(IP, p + nstart, nend - nstart);
         IP[nLen] = ':';
@@ -87,14 +87,14 @@ bool GetIPFromIfconfig(const CHAR* cmd_buff, const CHAR* partten, CHAR IP[], INT
 	    p += nend;
         if(FindPattern(p, IP_RULE, nstart, nend))
         {
-            DBG("find eth0 IP : nstart is %d, nedn is %d",nstart, nend);
+            //DBG("find eth0 IP : nstart is %d, nedn is %d",nstart, nend);
             memcpy(IP + nLen, p + nstart, nend - nstart);
             IP[nLen + nend - nstart] = '\0';
-            DBG("%s",IP);
+            //DBG("%s",IP);
             return true;
         }
     }
-    DBG("parse ip fail");
+    //DBG("parse ip fail");
     return false;
 }
 bool RemoveCRLF(CHAR* data)
