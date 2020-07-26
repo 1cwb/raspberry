@@ -18,7 +18,7 @@ LDLIBS = -l pthread
 # 目标
 TARGET = runtest
 # 源文件
-LIBSRC += stdlib/mutexlock.cpp stdlib/condition.cpp main.cpp stdlib/thread.cpp stdlib/msg.cpp stdlib/usbEvent.cpp \
+LIBSRC += stdlib/mutexlock.cpp stdlib/condition.cpp main.cpp threadtask.cpp stdlib/thread.cpp stdlib/msg.cpp stdlib/usbEvent.cpp \
       stdlib/common.cpp stdlib/cfile.cpp stdlib/cfileSys.cpp stdlib/timemeasure.cpp stdlib/csignal.cpp oled/oled.cpp
 LIBFONTSRC += fonts/font8.cpp fonts/font12.cpp fonts/font16.cpp fonts/font20.cpp fonts/font24.cpp 
 
