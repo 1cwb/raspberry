@@ -9,15 +9,28 @@ MutexLock::~MutexLock()
     assert(!isLocking());
     TINY_CHECK(!pthread_mutex_destroy(&mutex_));
 }
-VOID MutexLock::lock()
+INT32 MutexLock::lock()
 {
-    TINY_CHECK(!pthread_mutex_lock(&mutex_));
-    isLocking_ = true;	
+    INT32 res = pthread_mutex_lock(&mutex_);
+    isLocking_ = true;
+    return res;
 }
-VOID MutexLock::unlock()
+INT32 MutexLock::trylock()
 {
-	isLocking_ = false;
-	TINY_CHECK(!pthread_mutex_unlock(&mutex_));
+    INT32 res = pthread_mutex_trylock(&mutex_);
+    isLocking_ = true;
+    return res;
+}
+INT32 MutexLock::timedlock(const struct timespec* tsptr)
+{
+    INT32 res = pthread_mutex_timedlock(&mutex_, tsptr);
+    isLocking_ = true;
+    return res;
+}
+INT32 MutexLock::unlock()
+{
+    isLocking_ = false;
+    return pthread_mutex_unlock(&mutex_);
 }
 
 bool MutexLock::isLocking() const
@@ -34,4 +47,43 @@ VOID MutexLock::restoreMutexStatus()
 	isLocking_ = true;
 }
 
+/*rw lock*/
 
+RWLock::RWLock()
+{
+
+}
+RWLock::~RWLock()
+{
+
+}
+INT32 RWLock::rdlock()
+{
+
+}
+INT32 RWLock::wrlock()
+{
+
+}
+INT32 RWLock::unlock()
+{
+
+}
+INT32 RWLock::tryrdlock()
+{
+
+}
+INT32 RWLock::trywrlock()
+{
+
+}
+INT32 RWLock::rwlock_timedrdlock(const struct timespec* tsptr)
+{
+
+}
+INT32 RWLock::rwlock_timedwrlock(const struct timespec* tsptr)
+{
+
+}
+
+    //pthread_rwlock_t rwlock;

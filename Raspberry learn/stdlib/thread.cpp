@@ -40,3 +40,32 @@ bool Thread::setThreadFunc(threadFunc func, VOID* data)
     return true;
 }
 
+pthread_t Thread::Cpthread_self()
+{
+	return pthread_self();
+}
+bool Thread::Cpthread_equal(const pthread_t tid)
+{
+	if(pthread_equal(threadId_, tid) != 0)
+	{
+		return true;
+	}
+	return false;
+}
+INT32 Thread::Cpthread_join(pthread_t thread, VOID** rval_ptr)
+{
+    return pthread_join(thread, rval_ptr);
+}
+
+INT32 Thread::Cpthread_cancel(pthread_t tid)
+{
+	return pthread_cancel(tid);
+}
+VOID Thread::Cpthread_exit(VOID* rval_ptr)
+{
+    pthread_exit(rval_ptr);
+}
+INT32 Thread::Cpthread_detach(pthread_t tid)
+{
+	return pthread_detach(tid);
+}
