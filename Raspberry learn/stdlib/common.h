@@ -53,6 +53,13 @@ typedef float               FLOAT;
 #define FILE_NAME_LEN 128
 #define PATCH_FILE_LEN 255
 
+/*
+SIG_ERR, SIG_DFL, SIG_IGN
+void (*signal(int signo, void (*func)(int))) (int);
+*/
+typedef VOID SIG_FUNC(INT32);
+#define LINUX_SIGNAL_SUPPORT_NUM 64
+
 #define IP_RULE "([0-9]{1,3}[.]){3}[0-9]{1,3}"
 
 
@@ -246,6 +253,97 @@ INT32 Cputs(const CHAR* str);
 FILE* Ctmpfile(VOID);/*auto unlick after create*/
 CHAR* Cmkdtemp(CHAR* temppath);/*need unlink by your self*/
 INT32 Cmkstemp(CHAR* temppath);/*need unlink by your self, S_IRUSR | S_IWUSR | S_IXUSR*/
+
+/*SIGNAL*/
+/*
+
+#define SIG_ERR	((__sighandler_t) -1)		//Error return.  
+#define SIG_DFL	((__sighandler_t) 0)		// Default action.  
+#define SIG_IGN	((__sighandler_t) 1)		// Ignore signal.  
+ 
+#ifdef __USE_UNIX98
+# define SIG_HOLD	((__sighandler_t) 2)	// Add signal to hold mask.
+#endif
+ 
+ 
+ Signals. 
+#define	SIGHUP		1	 Hangup (POSIX). 
+#define	SIGINT		2	 Interrupt (ANSI).  
+#define	SIGQUIT		3	 Quit (POSIX).  
+#define	SIGILL		4	 Illegal instruction (ANSI).  
+#define	SIGTRAP		5	 Trace trap (POSIX).  
+#define	SIGABRT		6	 Abort (ANSI).  
+#define	SIGIOT		6	 IOT trap (4.2 BSD).  
+#define	SIGBUS		7	 BUS error (4.2 BSD).  
+#define	SIGFPE		8	 Floating-point exception (ANSI).  
+#define	SIGKILL		9	 Kill, unblockable (POSIX).  
+#define	SIGUSR1		10	 User-defined signal 1 (POSIX).  
+#define	SIGSEGV		11	 Segmentation violation (ANSI).  
+#define	SIGUSR2		12	 User-defined signal 2 (POSIX).  
+#define	SIGPIPE		13	 Broken pipe (POSIX). 
+#define	SIGALRM		14	 Alarm clock (POSIX). 
+#define	SIGTERM		15	 Termination (ANSI). 
+#define	SIGSTKFLT	16	 Stack fault. 
+#define	SIGCLD		SIGCHLD	 Same as SIGCHLD (System V). 
+#define	SIGCHLD		17	 Child status has changed (POSIX). 
+#define	SIGCONT		18	 Continue (POSIX). 
+#define	SIGSTOP		19	 Stop, unblockable (POSIX).
+#define	SIGTSTP		20	 Keyboard stop (POSIX). 
+#define	SIGTTIN		21	 Background read from tty (POSIX).
+#define	SIGTTOU		22	 Background write to tty (POSIX).  
+#define	SIGURG		23	 Urgent condition on socket (4.2 BSD).
+#define	SIGXCPU		24	 CPU limit exceeded (4.2 BSD).
+#define	SIGXFSZ		25	 File size limit exceeded (4.2 BSD).
+#define	SIGVTALRM	26	 Virtual alarm clock (4.2 BSD).
+#define	SIGPROF		27	Profiling alarm clock (4.2 BSD).
+#define	SIGWINCH	28	 Window size change (4.3 BSD, Sun).
+#define	SIGPOLL		SIGIO	 Pollable event occurred (System V).
+#define	SIGIO		29	 I/O now possible (4.2 BSD).
+#define	SIGPWR		30	 Power failure restart (System V).  
+#define SIGSYS		31	 Bad system call.  
+#define SIGUNUSED	31
+#define	_NSIG		65	//Biggest signal number + 1
+*/
+
+//SIG_FUNC* Csignal(INT32 signo, SIG_FUNC* func);
+INT32 Ckill(pid_t pid, INT32 signo);
+INT32 Craise(INT32 signo);
+UINT32 Calarm(UINT32 seconds);
+INT32 Cpause(VOID);
+INT32 Csigemptyset(sigset_t *set);
+INT32 Csigfillset(sigset_t *set);
+INT32 Csigaddset(sigset_t *set, INT32 signo);
+INT32 Csigdelset(sigset_t *set, INT32 signo);
+bool  Csigismember(const sigset_t *set, INT32 signo);
+INT32 Csigprocmask(INT32 how, const sigset_t *set, sigset_t *oset);//for noly single thread
+INT32 Csigpending(sigset_t *set);
+/*
+struct sigaction {
+    void (*sa_handler)(int); //add for signal handler or SIG_IGN, SIG_DFL
+    sigset_t sa_mask;        //additional signals to block
+    int      sa_flags;       //signal options, Figure 10.16
+    //alternate handler
+    void (*sa_sigaction)(int, siginfo_t* void*);
+};
+sa_flag是一个选项，主要理解两个
+SA_INTERRUPT 由此信号中断的系统调用不会自动重启
+SA_RESTART 由此信号中断的系统调用会自动重启
+SA_SIGINFO 提供附加信息，一个指向siginfo结构的指针以及一个指向进程上下文标识符的指针
+SA_NOCLDSTOP 若signo是SICHLD
+SA_NOCLDWAIT 若signo是SICHLD
+SA_NODEFER
+SA_ONSTACK
+SA_RESETHAND
+*/
+INT32 Csigaction(INT32 signo, const struct sigaction* act, struct sigaction* oact);
+SIG_FUNC *Csignal(INT32 signo, SIG_FUNC* func);
+INT32 Csigsuspend(const sigset_t *sigmask);
+VOID Cpsignal(INT32 signo, const CHAR* msg);
+VOID Cpsiginfo(const siginfo_t *info, const CHAR* msg);
+CHAR* Cstrsignal(INT32 signo);
+VOID Cabort(VOID);
+INT32 Cnanosleep(const struct timespec *reqtp, timespec *remtp);
+INT32 Cclock_nanosleep(clockid_t clock_id, INT32 flags, const struct timespec *reqtp, timespec *remtp);
 /*********************************IOSC**********************************/
 pid_t Cgetpid(VOID);
 pid_t Cgetppid(VOID);

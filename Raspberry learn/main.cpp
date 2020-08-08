@@ -26,6 +26,7 @@ INT32 main()
 {
     DBG("my PID is %d",Cgetpid());
     DBG("Raspberry Service Running!!!");
+
 #ifdef OLED_DRIVER_ON
     queue_buf *oled_data = NULL;
     CHAR myTime[32] = {0};

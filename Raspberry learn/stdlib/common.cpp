@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
+#include <signal.h>
 #include "deelx.h"
 
 
@@ -859,4 +860,173 @@ CHAR* Cgetlogin(VOID)
         setErrno(errno);
     }
     return pwd;
+}
+/*
+SIG_FUNC* Csignal(INT32 signo, SIG_FUNC* func)
+{
+    return signal(signo, func);
+}
+*/
+INT32 Ckill(pid_t pid, INT32 signo)
+{
+    INT32 res = kill(pid, signo);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Craise(INT32 signo)
+{
+    INT32 res = raise(signo);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+
+UINT32 Calarm(UINT32 seconds)
+{
+    return alarm(seconds);
+}
+
+INT32 Cpause(VOID)
+{
+    INT32 res = pause();
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+
+INT32 Csigemptyset(sigset_t *set)
+{
+    INT32 res = sigemptyset(set);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Csigfillset(sigset_t *set)
+{
+    INT32 res = sigfillset(set);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Csigaddset(sigset_t *set, INT32 signo)
+{
+    INT32 res = sigaddset(set, signo);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Csigdelset(sigset_t *set, INT32 signo)
+{
+    INT32 res = sigdelset(set, signo);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+bool  Csigismember(const sigset_t *set, INT32 signo)
+{
+    return sigismember(set, signo);
+}
+INT32 Csigprocmask(INT32 how, const sigset_t *set, sigset_t *oset)
+{
+    INT32 res = sigprocmask(how, set, oset);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Csigpending(sigset_t *set)
+{
+    INT32 res = sigpending(set);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Csigaction(INT32 signo, const struct sigaction* act, struct sigaction* oact)
+{
+    INT32 res = sigaction(signo, act, oact);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+SIG_FUNC *Csignal(INT32 signo, SIG_FUNC* func)
+{
+    struct sigaction act, oact;
+    act.sa_handler = func;
+    Csigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    if(signo == SIGALRM)
+    {
+    #ifdef SA_INTERRUPT
+        act.sa_flags |= SA_INTERRUPT;
+    #endif
+    }
+    else
+    {
+        act.sa_flags |= SA_RESTART;
+    }
+    if(Csigaction(signo, &act, &oact) < 0)
+    {
+        return SIG_ERR;
+    }
+    return oact.sa_handler;
+}
+INT32 Csigsuspend(const sigset_t *sigmask)
+{
+    INT32 res = sigsuspend(sigmask);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;//always return -1
+}
+
+VOID Cpsignal(INT32 signo, const CHAR* msg)
+{
+    return psignal(signo, msg);
+}
+VOID Cpsiginfo(const siginfo_t *info, const CHAR* msg)
+{
+    return psiginfo(info, msg);
+}
+CHAR* Cstrsignal(INT32 signo)
+{
+    return strsignal(signo);
+}
+INT32 Cnanosleep(const struct timespec *reqtp, timespec *remtp)
+{
+    INT32 res = nanosleep(reqtp, remtp);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
+}
+INT32 Cclock_nanosleep(clockid_t clock_id, INT32 flags, const struct timespec *reqtp, timespec *remtp)
+{
+    INT32 res = clock_nanosleep(clock_id, flags, reqtp, remtp);
+    if(res < 0)
+    {
+        setErrno(errno);
+    }
+    return res;
 }
