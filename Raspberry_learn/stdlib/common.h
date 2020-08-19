@@ -62,8 +62,7 @@ typedef VOID SIG_FUNC(INT32);
 
 #define IP_RULE "([0-9]{1,3}[.]){3}[0-9]{1,3}"
 
-
-INT32 getErrno(VOID);
+INT32 Cgeterrno();
 CHAR* Cstrerror(INT32 Cerrno);
 bool FindPattern(const CHAR* pContent, const CHAR* pPattern, INT32 &nStart, INT32 &nEnd);
 bool DoComman(const CHAR* cmd, const CHAR* type, CHAR* result, size_t len);

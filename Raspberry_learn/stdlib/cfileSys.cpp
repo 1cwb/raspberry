@@ -8,28 +8,18 @@
 #include <dirent.h>
 
 
-VOID CfileSys::setErrno(INT32 merrno)
-{
-    Cerrno = merrno;
-}
-INT32 CfileSys::getErrno(VOID)
-{
-    Terrno = Cerrno;
-    Cerrno = 0;
-    return Terrno;
-}
-CfileSys::CfileSys() : fd(-1), isOpenFileSucces(false), Cerrno(0), Terrno(0)
+CfileSys::CfileSys() : fd(-1), isOpenFileSucces(false)
 {
 }
-CfileSys::CfileSys(const CHAR* path, INT32 oflag, mode_t mode) : fd(-1), isOpenFileSucces(false) , Cerrno(0), Terrno(0)
+CfileSys::CfileSys(const CHAR* path, INT32 oflag, mode_t mode) : fd(-1), isOpenFileSucces(false)
 {
     copen(path, oflag, mode);
 }
-CfileSys::CfileSys(const CHAR* path, INT32 oflag) : fd(-1), isOpenFileSucces(false) , Cerrno(0), Terrno(0)
+CfileSys::CfileSys(const CHAR* path, INT32 oflag) : fd(-1), isOpenFileSucces(false)
 {
     copen(path, oflag);
 }
-CfileSys::CfileSys(FILE* stream) : fd(-1), isOpenFileSucces(false) , Cerrno(0), Terrno(0)
+CfileSys::CfileSys(FILE* stream) : fd(-1), isOpenFileSucces(false)
 {
     copen(stream);
 }
@@ -44,7 +34,6 @@ bool CfileSys::copen(FILE* stream)
     fd = fileno(stream);
     if(fd < 0)
     {
-        setErrno(errno);
         isOpenFileSucces = false;
     }
     else
@@ -64,7 +53,6 @@ bool CfileSys::copen(const CHAR* path, INT32 oflag, mode_t mode)
     fd = open(path, oflag, mode);
     if(fd < 0)
     {
-        setErrno(errno);
         isOpenFileSucces = false;
     }
     else
@@ -84,7 +72,6 @@ bool CfileSys::copen(const CHAR* path, INT32 oflag)
     fd = open(path, oflag);
     if(fd < 0)
     {
-        setErrno(errno);
         isOpenFileSucces = false;
     }
     else
@@ -123,84 +110,39 @@ bool CfileSys::fileCanUse()
 
 off_t CfileSys::clseek(off_t offset, INT32 whence)
 {
-    INT32 ret = lseek(fd,offset, whence);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return lseek(fd,offset, whence);
 }
 ssize_t CfileSys::cread(VOID* buff, size_t nbytes)
 {
-    INT32 ret = read(fd, buff, nbytes);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return read(fd, buff, nbytes);
 }
 ssize_t CfileSys::cwrite(const VOID* buff, size_t nbytes)
 {
-    INT32 ret = write(fd, buff, nbytes);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return write(fd, buff, nbytes);
 }
 ssize_t CfileSys::cpwrite(const VOID*buf, size_t nbytes, off_t offset)/* offset && write*/
 {
-    INT32 ret = pwrite(fd, buf, nbytes, offset);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return pwrite(fd, buf, nbytes, offset);
 }
 ssize_t CfileSys::cpread(VOID* buf, size_t nbytes, off_t offset)/*for offset && read*/
 {
-    INT32 ret = pread(fd, buf, nbytes, offset);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return pread(fd, buf, nbytes, offset);
 }
 INT32 CfileSys::cdup()
 {
-    INT32 ret = dup(fd);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return dup(fd);
 }
 INT32 CfileSys::cdup2(INT32 fd2)
 {
-    INT32 ret = dup2(fd, fd2);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return dup2(fd, fd2);
 }
 INT32 CfileSys::cfsync()
 {
-    INT32 ret = fsync(fd);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fsync(fd);
 }
 INT32 CfileSys::cfdatasync()/*like fsync,but fdatasync just update file data*/
 {
-    INT32 ret = fdatasync(fd);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fdatasync(fd);
 }
 VOID CfileSys::csync()/*update all file need update*/
 {
@@ -229,86 +171,41 @@ struct stat
 */
 INT32 CfileSys::cfstat(struct stat* buf)
 {
-    INT32 ret = fstat(fd, buf);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fstat(fd, buf);
 }
 
 INT32 CfileSys::Cfchmod(mode_t mode)
 {
-    INT32 ret = fchmod(fd, mode);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fchmod(fd, mode);
 }
 
 INT32 CfileSys::Cfchown(uid_t owner, gid_t group)
 {
-    INT32 ret = fchown(fd, owner, group);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fchown(fd, owner, group);
 }
 INT32 CfileSys::Cftruncate(off_t length)
 {
-    INT32 ret = ftruncate(fd, length);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return ftruncate(fd, length);
 }
 INT32 CfileSys::Cfutimens(const struct timespec times[2])
 {
-    INT32 ret = futimens(fd, times);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return futimens(fd, times);
 }
 
 INT32 CfileSys::Cfcntl(INT32 cmd)
 {
-    INT32 ret = fcntl(fd, cmd);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fcntl(fd, cmd);
 }
 INT32 CfileSys::Cfcntl(INT32 cmd, LONG arg)
 {
-    INT32 ret = fcntl(fd, cmd, arg);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fcntl(fd, cmd, arg);
 }
 INT32 CfileSys::Cfcntl(INT32 cmd ,struct flock* lock)
 {
-    INT32 ret = fcntl(fd, cmd ,lock);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fcntl(fd, cmd ,lock);
 }
 
 INT32 CfileSys::Cioctl(ULONG request, INT32 val)
 {
-    INT32 ret = ioctl(fd, request, val);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return ioctl(fd, request, val);
 }

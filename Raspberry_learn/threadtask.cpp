@@ -40,7 +40,7 @@ VOID* parseIniFile(VOID* p)
         DBG("OPEN RESULT FILE %s",resultFileName);
         Cfile raspFile(fileName, "rb");
         Cfile resutFile(resultFileName, "ab+");
-        DBG("%s",Cstrerror(getErrno()));
+        DBG("%s",Cstrerror(errno));
         if(raspFile.isFileopenSuccess())
         {
             while(raspFile.Cfgets(cmdBuff,sizeof(cmdBuff)) != NULL && !raspFile.Cfeof())
@@ -70,7 +70,7 @@ VOID* parseIniFile(VOID* p)
                         DBG("RUN SYSTEM COMMAND");  
                         if(!DoComman(cmdBuff, "r", resultBuff, 2098))
                         {
-                            DBG("%s",Cstrerror(getErrno()));
+                            DBG("%s",Cstrerror(Cgeterrno()));
                         }
                         if(resutFile.isFileopenSuccess())
                         {

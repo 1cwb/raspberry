@@ -1,18 +1,8 @@
 #include "cfile.h"
 #include <wchar.h>
 #include <errno.h>
-INT32 Cfile::getErrno(VOID)
-{
-    Terrno = Cerrno;
-    Cerrno = 0;
-    return Terrno;
-}
 
-VOID Cfile::setErrno(INT32 merrno)
-{
-    Cerrno = merrno;
-}
-Cfile::Cfile() : file(NULL), Cerrno(0), Terrno(0)
+Cfile::Cfile() : file(NULL)
 {
 
 }
@@ -33,21 +23,20 @@ bool Cfile::Cfmemopen(VOID* buf, size_t size, const CHAR* type)
     if(file == NULL)
     {
 	    DBG("ERROR! file is NULL");
-        setErrno(errno);
         return false;
     }
     return true;
 }
 
-Cfile::Cfile(const CHAR* fileName, const CHAR* type) : file(NULL), Cerrno(0), Terrno(0)
+Cfile::Cfile(const CHAR* fileName, const CHAR* type) : file(NULL)
 {
     Cfopen(fileName, type);
 }
-Cfile::Cfile(const CHAR* fileName, const CHAR* type, FILE* fp) : file(NULL), Cerrno(0), Terrno(0)
+Cfile::Cfile(const CHAR* fileName, const CHAR* type, FILE* fp) : file(NULL)
 {
     Cfreopen(fileName, type, fp);
 }
-Cfile::Cfile(INT32 fd, const CHAR* type) : file(NULL), Cerrno(0), Terrno(0)
+Cfile::Cfile(INT32 fd, const CHAR* type) : file(NULL)
 {
     Cfdopen(fd, type);
 }
@@ -65,8 +54,7 @@ bool Cfile::Cfopen(const CHAR* pathname, const CHAR* type)
     file = fopen(pathname, type);
     if(file == NULL)
     {
-	DBG("file is NULL");
-        setErrno(errno);
+	    DBG("file is NULL");
         return false;
     }
     return true;
@@ -81,7 +69,6 @@ bool Cfile::Cfreopen(const CHAR* pathname, const CHAR* type, FILE* fp)
     file = freopen(pathname, type, fp);
     if(file == NULL)
     {
-        setErrno(errno);
         return false;
     }
     return true;
@@ -96,19 +83,13 @@ bool Cfile::Cfdopen(INT32 fd, const CHAR* type)
     file = fdopen(fd, type);
     if(file == NULL)
     {
-        setErrno(errno);
         return false;
     }
     return true;
 }
 INT32 Cfile::Cfwide(INT32 mode/*<0 ,byte, =0,noset, >0 Wide byte*/)
 {
-    INT32 res = fwide(file ,mode/*<0 ,byte, =0,noset, >0 Wide byte*/);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return fwide(file ,mode/*<0 ,byte, =0,noset, >0 Wide byte*/);
 }
 VOID Cfile::Csetbuf(CHAR* buf/*buf size must be BUFSIZ*/)
 {
@@ -116,21 +97,11 @@ VOID Cfile::Csetbuf(CHAR* buf/*buf size must be BUFSIZ*/)
 }
 INT32 Cfile::Csetvbuf(CHAR* buf, INT32 mode/*_IOFBF/_IOLBF/_IONBF*/, size_t size/*buf size*/)
 {
-    INT32 res = setvbuf(file, buf, mode/*_IOFBF/_IOLBF/_IONBF*/,size/*buf size*/);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return setvbuf(file, buf, mode/*_IOFBF/_IOLBF/_IONBF*/,size/*buf size*/);
 }
 INT32 Cfile::Cfflush()
 {
-    INT32 res = fflush(file);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return fflush(file);
 }
 bool Cfile::isFileopenSuccess()
 {
@@ -147,12 +118,7 @@ INT32 Cfile::Cfclose()
 }
 INT32 Cfile::Cfgetc()
 {
-    INT32 res = fgetc(file);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return fgetc(file);
 }
 INT32 Cfile::Cferror()
 {
@@ -168,57 +134,27 @@ VOID Cfile::Cclearerr()
 }
 INT32 Cfile::Cungetc(INT32 c)
 {
-    INT32 res = ungetc(c, file);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return ungetc(c, file);
 }
 CHAR* Cfile::Cfgets(CHAR* buf, INT32 n)
 {
-    CHAR* p = fgets(buf, n, file);
-    if(p == NULL)
-    {
-        setErrno(errno);
-    }
-    return p;
+    return fgets(buf, n, file);
 }
 INT32 Cfile::Cfputc(INT32 c)
 {
-    INT32 res = fputc(c, file);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return fputc(c, file);
 }
 INT32 Cfile::Cfputs(const CHAR* str)
 {
-    INT32 res = fputs(str, file);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return fputs(str, file);
 }
 size_t Cfile::Cfread(VOID* buf, size_t size, size_t nobj)
 {
-    size_t res = fread(buf, size, nobj, file);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return fread(buf, size, nobj, file);
 }
 size_t Cfile::Cfwrite(const VOID* buf, size_t size, size_t nobj)
 {
-    size_t res = fwrite( buf, size, nobj, file);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return fwrite( buf, size, nobj, file);
 }
 LONG Cfile::Cftell()
 {

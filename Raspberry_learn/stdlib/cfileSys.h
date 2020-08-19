@@ -43,12 +43,9 @@ public:
     INT32 Cfcntl(INT32 cmd, LONG arg);
     INT32 Cfcntl(INT32 cmd ,struct flock* lock);
     INT32 Cioctl(ULONG request, INT32 val);
-    INT32 getErrno(VOID);
 private:
-    VOID setErrno(INT32 merrno);
+
     INT32 fd;
     bool isOpenFileSucces;
-    INT32 Cerrno;
-    INT32 Terrno;
 };
 #endif

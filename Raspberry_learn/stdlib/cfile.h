@@ -54,13 +54,10 @@ public:
     INT32 Cfsetpos(const fpos_t* pos);
     FILE* getFILE();
     INT32 getFILEno();
-    INT32 getErrno(VOID);
+
 private:
-    VOID setErrno(INT32 merrno);
+
     FILE *file;
-    
-    INT32 Cerrno;
-    INT32 Terrno;
 };
 
 #endif

@@ -13,18 +13,9 @@
 #include <signal.h>
 #include "deelx.h"
 
-
-static INT32 Cerrno = 0;
-static INT32 Terrno = 0;
-static VOID setErrno(INT32 merrno)
+INT32 Cgeterrno()
 {
-    Cerrno = merrno;
-}
-INT32 getErrno(VOID)
-{
-    Terrno = Cerrno;
-    Cerrno = 0;
-    return Terrno;
+    return errno;
 }
 CHAR* Cstrerror(INT32 Cerrno)
 {
@@ -54,13 +45,11 @@ bool DoComman(const CHAR* cmd, const CHAR* type, CHAR* result, size_t len)
     fp = popen(cmd, type);
     if(fp == NULL)
     {  
-        setErrno(errno);
         printf("popen cmd fail\n");
         return false;
     }
     if(fread(result, 1, len, fp) < 0)
     {   
-        setErrno(errno);
         pclose(fp);
         return false;
     }
@@ -144,400 +133,185 @@ struct stat
 */
 INT32 Cfstat(INT32 fd, struct stat *buf)
 {
-     INT32 ret = fstat(fd, buf);
-     if(ret < 0)
-     {
-         setErrno(errno);
-     }
-     return ret;
+     return fstat(fd, buf);
 }
 INT32 Cstat(const CHAR *path, struct stat *buf)
 {
-    INT32 ret = stat(path, buf);
-    if(ret < 0)
-    {
-       setErrno(errno); 
-    }
-    return ret;
+    return stat(path, buf);
 }
 
 INT32 Clstat(const CHAR *path, struct stat *buf)
 {
-    INT32 ret = lstat(path, buf);
-    if(ret < 0)
-    {
-        setErrno(errno); 
-    }
-    return ret;
+    return lstat(path, buf);
 }
 
 INT32 Cfstatat(INT32 fd, const CHAR* patchname, struct stat *buf, INT32 flag)
 {
-    INT32 ret = fstatat(fd, patchname, buf, flag);
-    if(ret < 0)
-    {
-        setErrno(errno); 
-    }
-    return ret;
+    return fstatat(fd, patchname, buf, flag);
 }
 
 INT32 Cfcntl(INT32 fd, INT32 cmd)
 {
-    INT32 ret = fcntl(fd, cmd);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fcntl(fd, cmd);
 }
 INT32 Cfcntl(INT32 fd, INT32 cmd, LONG arg)
 {
-    INT32 ret = fcntl(fd, cmd, arg);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fcntl(fd, cmd, arg);
 }
 INT32 Cfcntl(INT32 fd, INT32 cmd ,struct flock* lock)
 {
-    INT32 ret = fcntl(fd, cmd ,lock);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fcntl(fd, cmd ,lock);
 }
 
 INT32 Cchmod(const CHAR *path, mode_t mode)
 {
-    INT32 ret = chmod(path, mode);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return chmod(path, mode);
 }
 INT32 Cfchmod(INT32 fd, mode_t mode)
 {
-    INT32 ret = fchmod(fd, mode);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fchmod(fd, mode);
 }
 INT32 Cfchmodat(INT32 fd, const CHAR* patchname, mode_t mode, INT32 flag)
 {
-    INT32 ret = fchmodat(fd, patchname, mode, flag);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return fchmodat(fd, patchname, mode, flag);
 }
 
 INT32 Copenat(INT32 fd, const CHAR* path, INT32 oflag)
 {
-    INT32 ret = openat(fd, path, oflag);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return openat(fd, path, oflag);
 }
 INT32 Copenat(INT32 fd, const CHAR* path, INT32 oflag, mode_t mode)
 {
-    INT32 ret = openat(fd, path, oflag, mode);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret; 
+    return openat(fd, path, oflag, mode); 
 }
 
 INT32 Caccess(const CHAR* pathname, INT32 mode)/*mode is F_OK/R_OK/W_OK/X_OK*/
 {
-    INT32 ret = access(pathname, mode);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return access(pathname, mode);
 }
 INT32 Cfaccessat(INT32 fd, const CHAR* pathname, INT32 mode, INT32 flag)
 {
-    INT32 ret = faccessat(fd, pathname, mode, flag);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return faccessat(fd, pathname, mode, flag);
 }
 INT32 Clink(const CHAR* existingpath, const CHAR* newpath)
 {
-    INT32 ret = link(existingpath, newpath);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return link(existingpath, newpath);
 }
 INT32 Clinkat(INT32 efd, const CHAR* existingpath, INT32 fd, const CHAR* newpath, INT32 flag)
 {
-    INT32 ret = linkat(efd, existingpath, fd, newpath, flag);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return linkat(efd, existingpath, fd, newpath, flag);
 }
 INT32 Cunlink(const CHAR* pathname)
 {
-    INT32 ret = unlink(pathname);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return unlink(pathname);
 }
 INT32 Cunlinkat(INT32 fd, const CHAR* pathname, INT32 flag)
 {
-    INT32 ret = unlinkat(fd, pathname, flag);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return unlinkat(fd, pathname, flag);
 }
 INT32 Ctruncate(const CHAR* pathname, off_t length)
 {
-    INT32 ret = truncate(pathname, length);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return truncate(pathname, length);
 }
 INT32 Cftruncate(INT32 fd, off_t length)
 {
-    INT32 ret = ftruncate(fd, length);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return ftruncate(fd, length);
 }
 INT32 Cremove(const CHAR* patchname)
 {
-    INT32 ret = remove(patchname);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return remove(patchname);
 }
 INT32 Crename(const CHAR* oldname, const CHAR* newname)
 {
-    INT32 ret = rename(oldname, newname);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return rename(oldname, newname);
 }
 INT32 Crenameat(INT32 oldfd, const CHAR* oldname, INT32 newfd, const CHAR* newname)
 {
-    INT32 ret = renameat(oldfd, oldname, newfd, newname);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return renameat(oldfd, oldname, newfd, newname);
 }
 INT32 Csymlink(const CHAR* actualpath, const CHAR* sympath)
 {
-    INT32 ret = symlink(actualpath, sympath);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return symlink(actualpath, sympath);
 }
 INT32 Csymlinkat(const CHAR* actualpath, INT32 fd, const CHAR* sympath)
 {
-    INT32 ret = symlinkat(actualpath, fd, sympath);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return symlinkat(actualpath, fd, sympath);
 }
 ssize_t Creadlink(const CHAR* pathname, CHAR* buf, size_t bufsize)
 {
-    INT32 ret = readlink(pathname, buf, bufsize);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return readlink(pathname, buf, bufsize);
 }
 ssize_t Creadlinkat(INT32 fd, const CHAR* pathname, CHAR* buf, size_t bufsize)
 {
-    INT32 ret = readlinkat(fd, pathname, buf, bufsize);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return readlinkat(fd, pathname, buf, bufsize);
 }
 INT32 Cfutimens(INT32 fd, const struct timespec times[2])
 {
-    INT32 ret = futimens(fd, times);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return futimens(fd, times);
 }
 INT32 Cutimensat(INT32 fd, const CHAR* path, const struct timespec times[2], INT32 flag)
 {
-    INT32 ret = utimensat(fd, path, times, flag);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return utimensat(fd, path, times, flag);
 }
 INT32 Cutimes(const CHAR* pathname, const struct timeval times[2])
 {
-    INT32 ret = utimes(pathname, times);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return utimes(pathname, times);
 }
 INT32 Cmkdir(const CHAR* pathname, mode_t mode)
 {
-    INT32 ret = mkdir( pathname, mode);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return mkdir( pathname, mode);
 }
 INT32 Cmkdirat(INT32 fd, const CHAR* pathname, mode_t mode)
 {
-    INT32 ret = mkdirat(fd, pathname, mode);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return mkdirat(fd, pathname, mode);
 }
 INT32 Crmdir(const CHAR* pathname)
 {
-    INT32 ret = rmdir(pathname);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return rmdir(pathname);
 }
 
 INT32 Cioctl(INT32 fd, ULONG request, INT32 val)
 {
-    INT32 ret = ioctl(fd, request, val);
-    if(ret < 0)
-    {
-        setErrno(errno);
-    }
-    return ret;
+    return ioctl(fd, request, val);
 }
 
 INT32 Cnice(INT32 incr)
 {
-    INT32 res = nice(incr);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return nice(incr);
 }
 
 INT32 Cgetpriority(INT32 which, id_t who)
 {
-    INT32 res = getpriority(which, who);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return getpriority(which, who);
 }
 INT32 Csetpriority(INT32 which, id_t who, INT32 value)
 {
-    INT32 res = setpriority(which, who, value);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return setpriority(which, who, value);
 }
 INT32 Cmount(const CHAR *source, const CHAR *target, const CHAR *filesystemtype, ULONG mountflags, const VOID *data)
 {
-    INT32 res = mount(source, target, filesystemtype, mountflags, data);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return mount(source, target, filesystemtype, mountflags, data);
 }
 INT32 Cumount(const CHAR *target)
 {
-    INT32 res = umount(target);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return umount(target);
 }
 INT32 Cumount2(const CHAR *target, INT32 flags)
 {
-    INT32 res = umount2(target, flags);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return umount2(target, flags);
 }
 DIR* Copendir(const CHAR* pathname)
 {
-    DIR* dir = opendir(pathname);
-    if(dir == NULL)
-    {
-        setErrno(errno);
-    }
-    return dir;
+    return opendir(pathname);
 }
 DIR* Cfdopendir(INT32 fd)
 {
-    DIR* dir = fdopendir(fd);
-    if(dir == NULL)
-    {
-        setErrno(errno);
-    }
-    return dir;
+    return fdopendir(fd);
 }
 
 struct dirent* Creaddir(DIR* dir)
 {
-    struct dirent* dirent = readdir(dir);
-    if(dirent == NULL)
-    {
-        setErrno(errno);
-    }
-    return dirent;
+    return readdir(dir);
 }
 VOID Crewinddir(DIR* dir)
 {
@@ -545,21 +319,11 @@ VOID Crewinddir(DIR* dir)
 }
 INT32 Cclosedir(DIR* dir)
 {
-    INT32 res = closedir(dir);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return closedir(dir);
 }
 LONG Ctelldir(DIR* dir)
 {
-    LONG res = telldir(dir);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return telldir(dir);
 }
 VOID Cseekdir(DIR* dir, LONG loc)
 {
@@ -583,60 +347,30 @@ bool getLocalTime(CHAR* mtime, INT32 len)
 
 INT32 Cchdir(const CHAR* pathname)
 {
-    INT32 res = chdir(pathname);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return chdir(pathname);
 }
 INT32 Cfchdir(INT32 fd)
 {
-    INT32 res = fchdir(fd);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return fchdir(fd);
 }
 CHAR* Cgetcwd(CHAR* buf, size_t size)
 {
-    CHAR* p = getcwd(buf, size);
-    if(p == NULL)
-    {
-        setErrno(errno);
-    }
-    return p;
+    return getcwd(buf, size);
 }
 
 
 /*********************************IOSC**********************************/
 INT32 Cgetchar(VOID)
 {
-    INT32 res = getchar();
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return getchar();
 }
 INT32 Cputchar(INT32 c)
 {
-    INT32 res = putchar(c);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return putchar(c);
 }
 INT32 Cputs(const CHAR* str)
 {
-    INT32 res = puts(str);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return puts(str);
 }
 
 pid_t Cgetpid(VOID)
@@ -666,123 +400,58 @@ gid_t Cgetegid(VOID)
 
 INT32 Cgetresuid(uid_t *ruid, uid_t *euid, uid_t *suid)
 {
-    INT32 res = getresuid(ruid, euid, suid);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return getresuid(ruid, euid, suid);
 }
 INT32 Cgetresgid(gid_t *rgid, gid_t *egid, gid_t *sgid)
 {
-    INT32 res = getresgid(rgid, egid, sgid);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return getresgid(rgid, egid, sgid);
 }
 
 INT32 Csetuid(uid_t uid)
 {
-    INT32 res = setuid(uid);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return setuid(uid);
 }
 INT32 Csetgid(gid_t gid)
 {
-    INT32 res = setgid(gid);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return setgid(gid);
 }
 INT32 Csetreuid(uid_t ruid, uid_t euid)
 {
-    INT32 res = setreuid(ruid, euid);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return setreuid(ruid, euid);
 }
 INT32 Csetregid(gid_t rgid, gid_t egid)
 {
-    INT32 res = setregid(rgid, egid);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return setregid(rgid, egid);
 }
 INT32 Cseteuid(uid_t uid)
 {
-    INT32 res = seteuid(uid);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return seteuid(uid);
 }
 INT32 Csetegid(gid_t gid)
 {
-    INT32 res = setegid(gid);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return setegid(gid);
 }
 
 pid_t Cfork(VOID)
 {
-    pid_t pid = fork();
-    if(pid < 0)
-    {
-        setErrno(errno);
-    }
-    return pid;
+    return fork();
 }
 
 pid_t Cwait(INT32* statloc)
 {
-    pid_t pid = wait(statloc);
-    if(pid < 0)
-    {
-        setErrno(errno);
-    }
-    return pid;
+    return wait(statloc);
 }
 pid_t Cwaitpid(pid_t pid, INT32* statloc, INT32 options)
 {
-    pid_t npid = waitpid(pid, statloc, options);
-    if(npid < 0)
-    {
-        setErrno(errno);
-    }
-    return npid;
+    return waitpid(pid, statloc, options);
 }
 INT32 Cwaitid(idtype_t idtype, id_t id, siginfo_t *infop, INT32 options)
 {
-    INT32 res = waitid(idtype, id, infop, options);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return waitid(idtype, id, infop, options);
 }
 INT32 Csystem(const CHAR* cmdstring)
 {
-    INT32 res = system(cmdstring);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return system(cmdstring);
 }
 VOID Cexit(INT32 status) //ISO C,fclose all open file and fllush all stream
 {
@@ -807,59 +476,29 @@ CHAR* Cgetenv(const CHAR* name)
 }
 INT32 Cputenv(CHAR* str)
 {
-    INT32 res = putenv(str);
-    if(res != 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return putenv(str);
 }
 INT32 Csetenv(const CHAR* name, const CHAR* value, INT32 rewrite/*if true,then rewrite*/)
 {
-    INT32 res = setenv(name, value, rewrite/*if true,then rewrite*/);
-    if(res != 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return setenv(name, value, rewrite/*if true,then rewrite*/);
 }
 INT32 Cunsetenv(const CHAR* name)
 {
-    INT32 res = unsetenv(name);
-    if(res != 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return unsetenv(name);
 }
 /*********************************IOSC**********************************/
 struct passwd* Cgetpwnam(const CHAR* name)
 {
-    struct passwd *pwd = getpwnam(name);
-    if(pwd == NULL)
-    {
-        setErrno(errno);
-    }
-    return pwd;
+    return getpwnam(name);
 }
 struct passwd* Cgetpwuid(uid_t uid)
 {
-    struct passwd *pwd = getpwuid(uid);
-    if(pwd == NULL)
-    {
-        setErrno(errno);
-    }
-    return pwd;
+    return getpwuid(uid);
 }
 
 CHAR* Cgetlogin(VOID)
 {
-    CHAR* pwd = getlogin();
-    if(pwd == NULL)
-    {
-        setErrno(errno);
-    }
-    return pwd;
+    return getlogin();
 }
 /*
 SIG_FUNC* Csignal(INT32 signo, SIG_FUNC* func)
@@ -869,21 +508,11 @@ SIG_FUNC* Csignal(INT32 signo, SIG_FUNC* func)
 */
 INT32 Ckill(pid_t pid, INT32 signo)
 {
-    INT32 res = kill(pid, signo);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return kill(pid, signo);
 }
 INT32 Craise(INT32 signo)
 {
-    INT32 res = raise(signo);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return raise(signo);
 }
 
 UINT32 Calarm(UINT32 seconds)
@@ -893,49 +522,24 @@ UINT32 Calarm(UINT32 seconds)
 
 INT32 Cpause(VOID)
 {
-    INT32 res = pause();
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return pause();
 }
 
 INT32 Csigemptyset(sigset_t *set)
 {
-    INT32 res = sigemptyset(set);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return sigemptyset(set);
 }
 INT32 Csigfillset(sigset_t *set)
 {
-    INT32 res = sigfillset(set);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return sigfillset(set);
 }
 INT32 Csigaddset(sigset_t *set, INT32 signo)
 {
-    INT32 res = sigaddset(set, signo);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return sigaddset(set, signo);
 }
 INT32 Csigdelset(sigset_t *set, INT32 signo)
 {
-    INT32 res = sigdelset(set, signo);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return sigdelset(set, signo);
 }
 bool  Csigismember(const sigset_t *set, INT32 signo)
 {
@@ -943,30 +547,15 @@ bool  Csigismember(const sigset_t *set, INT32 signo)
 }
 INT32 Csigprocmask(INT32 how, const sigset_t *set, sigset_t *oset)
 {
-    INT32 res = sigprocmask(how, set, oset);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return sigprocmask(how, set, oset);
 }
 INT32 Csigpending(sigset_t *set)
 {
-    INT32 res = sigpending(set);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return sigpending(set);
 }
 INT32 Csigaction(INT32 signo, const struct sigaction* act, struct sigaction* oact)
 {
-    INT32 res = sigaction(signo, act, oact);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return sigaction(signo, act, oact);
 }
 SIG_FUNC *Csignal(INT32 signo, SIG_FUNC* func)
 {
@@ -992,12 +581,7 @@ SIG_FUNC *Csignal(INT32 signo, SIG_FUNC* func)
 }
 INT32 Csigsuspend(const sigset_t *sigmask)
 {
-    INT32 res = sigsuspend(sigmask);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;//always return -1
+    return sigsuspend(sigmask);//always return -1
 }
 
 VOID Cpsignal(INT32 signo, const CHAR* msg)
@@ -1014,19 +598,9 @@ CHAR* Cstrsignal(INT32 signo)
 }
 INT32 Cnanosleep(const struct timespec *reqtp, timespec *remtp)
 {
-    INT32 res = nanosleep(reqtp, remtp);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return nanosleep(reqtp, remtp);
 }
 INT32 Cclock_nanosleep(clockid_t clock_id, INT32 flags, const struct timespec *reqtp, timespec *remtp)
 {
-    INT32 res = clock_nanosleep(clock_id, flags, reqtp, remtp);
-    if(res < 0)
-    {
-        setErrno(errno);
-    }
-    return res;
+    return clock_nanosleep(clock_id, flags, reqtp, remtp);
 }

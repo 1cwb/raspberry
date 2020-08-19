@@ -34,7 +34,7 @@ bool Oled::init(INT32 ch)
     if (dev_file.Cioctl(I2C_SLAVE, 0x3c) < 0)
     {
 	DBG("Failed to acquire bus for OLED matrix\n");
-        DBG("%s",Cstrerror(dev_file.getErrno()));
+        DBG("%s",Cstrerror(Cgeterrno()));
         dev_file.cclose();
 	return false;
     }
