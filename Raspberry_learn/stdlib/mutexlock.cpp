@@ -51,39 +51,39 @@ VOID MutexLock::restoreMutexStatus()
 
 RWLock::RWLock()
 {
-
+    pthread_rwlock_init(&rwlock, NULL);
 }
 RWLock::~RWLock()
 {
-
+    pthread_rwlock_destroy(&rwlock);
 }
 INT32 RWLock::rdlock()
 {
-
+    return pthread_rwlock_rdlock(&rwlock);
 }
 INT32 RWLock::wrlock()
 {
-
+    return pthread_rwlock_wrlock(&rwlock);
 }
 INT32 RWLock::unlock()
 {
-
+    return pthread_rwlock_unlock(&rwlock);
 }
 INT32 RWLock::tryrdlock()
 {
-
+    return pthread_rwlock_tryrdlock(&rwlock);
 }
 INT32 RWLock::trywrlock()
 {
-
+    return pthread_rwlock_trywrlock(&rwlock);
 }
 INT32 RWLock::rwlock_timedrdlock(const struct timespec* tsptr)
 {
-
+    return pthread_rwlock_timedrdlock(&rwlock, tsptr);
 }
 INT32 RWLock::rwlock_timedwrlock(const struct timespec* tsptr)
 {
-
+    return pthread_rwlock_timedwrlock(&rwlock, tsptr);
 }
 
     //pthread_rwlock_t rwlock;
