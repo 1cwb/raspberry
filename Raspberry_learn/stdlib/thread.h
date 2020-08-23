@@ -16,11 +16,11 @@ public:
 	bool setThreadFunc(threadFunc func, VOID* data);	
 	pthread_t getThreadID() const;
 	bool Cpthread_equal(const pthread_t tid);
-	static pthread_t Cpthread_self();
-	static INT32 Cpthread_join(pthread_t tid, VOID** rval_ptr);
-    static INT32 Cpthread_cancel(pthread_t tid);
-	static VOID Cpthread_exit(VOID* rval_ptr);
-    static INT32 Cpthread_detach(pthread_t tid);
+	static pthread_t CpthreadSelf();
+	static INT32 CpthreadJoin(pthread_t tid, VOID** rval_ptr);
+    static INT32 CpthreadCancel(pthread_t tid);
+	static VOID CpthreadExit(VOID* rval_ptr);
+    static INT32 CpthreadDetach(pthread_t tid);
 private:
 	threadFunc thFunc;
     VOID* param;
@@ -28,5 +28,17 @@ private:
 	bool isRunning_;
 };
 
+class ThreadKey
+{
+public:
+    ThreadKey(VOID (*destr_function) (VOID*) = destrFunction);
+    ~ThreadKey();
+    INT32 pthreadSetspecific(const VOID* pointer);
+    VOID* pthreadGetspecific();
+    static VOID destrFunction(VOID* value);
+private:
+    pthread_key_t key;
+    
+};
 
 #endif
