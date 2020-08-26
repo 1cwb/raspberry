@@ -15,12 +15,13 @@ public:
 	
 	bool setThreadFunc(threadFunc func, VOID* data);	
 	pthread_t getThreadID() const;
-	bool Cpthread_equal(const pthread_t tid);
+	bool CpthreadEqual(const pthread_t tid);
 	static pthread_t CpthreadSelf();
 	static INT32 CpthreadJoin(pthread_t tid, VOID** rval_ptr);
     static INT32 CpthreadCancel(pthread_t tid);
 	static VOID CpthreadExit(VOID* rval_ptr);
     static INT32 CpthreadDetach(pthread_t tid);
+	static INT32 CpthreadOnce(pthread_once_t *initflag, VOID (*initfn)(void));
 private:
 	threadFunc thFunc;
     VOID* param;

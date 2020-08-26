@@ -44,7 +44,7 @@ pthread_t Thread::CpthreadSelf()
 {
 	return pthread_self();
 }
-bool Thread::Cpthread_equal(const pthread_t tid)
+bool Thread::CpthreadEqual(const pthread_t tid)
 {
 	if(pthread_equal(threadId_, tid) != 0)
 	{
@@ -68,6 +68,10 @@ VOID Thread::CpthreadExit(VOID* rval_ptr)
 INT32 Thread::CpthreadDetach(pthread_t tid)
 {
 	return pthread_detach(tid);
+}
+INT32 Thread::CpthreadOnce(pthread_once_t *initflag, VOID (*initfn)(void))
+{
+	return pthread_once(initflag, initfn);
 }
 
 /*thread_key*/
