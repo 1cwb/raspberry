@@ -27,9 +27,14 @@ VOID* parseIniFile(VOID* p)
     CHAR fileName[128] = {0};
     CHAR resultFileName[128] = {0};
     CHAR cmdBuff[128] = {0};
-    CHAR* resultBuff = (CHAR*)malloc(2098);
- 
+    CHAR* tempBuff = (CHAR*)malloc(512);
+    CHAR* resultBuff = (CHAR*)malloc(2048);
+
     CMD_TYPE dataTYpe = RASPBERRY_INVAILED_EM;
+    PRIVATE_CMD_TYPE private_type = RASPBERRY_UPDATE_VALUE_INVALIED_EM; 
+    
+    memset(tempBuff, 0, 512);
+    memset(resultBuff, 0, 2048);
     strcat(fileName, (CHAR*) p);
     strcat(fileName,RASPBERRY_COMMAND);
     strcat(resultFileName, (CHAR*) p);
@@ -43,7 +48,7 @@ VOID* parseIniFile(VOID* p)
         DBG("%s",Cstrerror(errno));
         if(raspFile.isFileopenSuccess())
         {
-            while(raspFile.Cfgets(cmdBuff,sizeof(cmdBuff)) != NULL && !raspFile.Cfeof())
+            while(!raspFile.Cfeof() && raspFile.Cfgets(cmdBuff, 128) != NULL)
             {
                 if(FindPattern(cmdBuff, "^[ ]*#", nStart, nEnd))
                 {
@@ -51,6 +56,7 @@ VOID* parseIniFile(VOID* p)
                     continue;
                 }
                 RemoveCRLF(cmdBuff);
+		//DBG("xxx %s",cmdBuff);
                 if(strncmp(cmdBuff,RASPBERRY_SYS_CMD, strlen(RASPBERRY_SYS_CMD)) == 0)
                 {
                     dataTYpe = RASPBERRY_SYS_CMD_EM;
@@ -68,7 +74,7 @@ VOID* parseIniFile(VOID* p)
                 {
                     case RASPBERRY_SYS_CMD_EM:
                         DBG("RUN SYSTEM COMMAND");  
-                        if(!DoComman(cmdBuff, "r", resultBuff, 2098))
+                        if(!DoComman(cmdBuff, "r", resultBuff, 2048))
                         {
                             DBG("%s",Cstrerror(Cgeterrno()));
                         }
@@ -76,10 +82,45 @@ VOID* parseIniFile(VOID* p)
                         {
                             resutFile.Cfwrite(resultBuff, 1, strlen(resultBuff));
                         }
-                        memset(resultBuff, 0, sizeof(CHAR)*2098);
+                        memset(resultBuff, 0, sizeof(CHAR)*2048);
                         break;
                     case RASPBERRY_UPDATE_VALUE_EM:
-                        DBG("CASE 2");
+                        DBG("cmd buff is %s",cmdBuff);
+                        if(strncmp(cmdBuff, RASPBERRY_UPDATE_VALUE_ADD_WIFI, strlen(RASPBERRY_UPDATE_VALUE_ADD_WIFI)) == 0)
+			{
+			    private_type = RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM;
+			    break;
+			}
+                        switch(private_type)
+			{
+			    case RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM:
+                                 //DBG("ADD NEW WIFI NOW");
+				 if(strstr(cmdBuff, "ssid") != NULL)
+				 {
+			             strcat(tempBuff,"\nnetwork={\n");
+				     strcat(tempBuff,cmdBuff);
+				     strcat(tempBuff,"\n");
+				 }
+				 if(strstr(cmdBuff, "psk") != NULL)
+				 {
+				     strcat(tempBuff, cmdBuff);
+				     strcat(tempBuff, "\n");
+				     strcat(tempBuff,"}\n");
+				     DBG("%s",tempBuff);
+				     DBG("open file %s",WPA_SUPPLICANT_CONFIG);
+				     Cfile wpa_file(WPA_SUPPLICANT_CONFIG, "ab+");
+				     if(wpa_file.Cfwrite(tempBuff, strlen(tempBuff), 1) < 0)
+				     {
+				         DBG("Add wifi failer!");
+					 DBG("Error is %s",Cstrerror(Cgeterrno()));
+				     }
+				     private_type = RASPBERRY_UPDATE_VALUE_INVALIED_EM;
+                                     wpa_file.Cfclose();
+				 }
+			        break;
+			    default:
+				break;
+			}
                         break;
                     default: break;
                 }
@@ -99,7 +140,10 @@ VOID* parseIniFile(VOID* p)
         msg_oled.push(data_oled, 1, IPC_WAITTIMES);
     }
     #endif
+    free(tempBuff);
+    tempBuff = NULL;
     free(resultBuff);
+    resultBuff = NULL;
     return NULL;
 }
 VOID* usbEvendParse(VOID* p)

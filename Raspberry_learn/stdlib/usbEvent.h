@@ -14,13 +14,16 @@
 #include <dirent.h>
 #include "common.h"
 
-#define USB_MOUNT_INFO    "/proc/mounts"
-#define RASPBERRY_PATH    "/RASPBERRY_CMD/"
-#define RASPBERRY_COMMAND "Raspberry.cmd"
-#define RASPBERRY_IP_FILE "Raspberry_ip.txt"
+#define USB_MOUNT_INFO            "/proc/mounts"
+#define WPA_SUPPLICANT_CONFIG     "/etc/wpa_supplicant/wpa_supplicant.conf"
+#define RASPBERRY_PATH            "/RASPBERRY_CMD/"
+#define RASPBERRY_COMMAND         "Raspberry.cmd"
+#define RASPBERRY_IP_FILE         "Raspberry_ip.txt"
 
-#define RASPBERRY_SYS_CMD "[RASPBERRY_SYS_CMD]"
-#define RASPBERRY_UPDATE_VALUE "[RASPBERRY_UPDATE_VALUE]"
+#define RASPBERRY_SYS_CMD         "[RASPBERRY_SYS_CMD]"
+#define RASPBERRY_UPDATE_VALUE    "[RASPBERRY_UPDATE_VALUE]"
+#define RASPBERRY_UPDATE_VALUE_ADD_WIFI "add_wifi"
+
 
 #define UEVENT_BUFFER_SIZE 1024
 #define FILE_LINE_LEN 512
@@ -35,6 +38,13 @@ RASPBERRY_INVAILED_EM = -1,
 RASPBERRY_SYS_CMD_EM,
 RASPBERRY_UPDATE_VALUE_EM
 }CMD_TYPE;
+
+typedef enum
+{
+RASPBERRY_UPDATE_VALUE_INVALIED_EM = -1,
+RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM,
+RASPBERRY_UPDATE_VALUE_MAX_ID
+}PRIVATE_CMD_TYPE;
 
 typedef struct usb_dev
 {
