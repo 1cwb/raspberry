@@ -107,6 +107,68 @@ bool RemoveCRLF(CHAR* data)
     }
     return true;
 }
+bool Daemonize(const CHAR* cmd)
+{
+    UINT32 i = 0;
+    INT32 fd0, fd1, fd2;
+    pid_t pid;
+    struct rlimit rl;
+    struct sigaction sa;
+
+    DBG("start daemon named %s",cmd);
+    Cumask(0);
+
+    if(Cgetrlimit(RLIMIT_NOFILE, &rl) < 0)
+    {
+        DBG("%s can not get file limit", cmd);
+    }
+    if((pid = Cfork()) < 0)
+    {
+        DBG("%s fork fail!",cmd);
+	    return false;
+    }
+    else if(pid != 0)
+    {
+         Cexit(0);
+    }
+    Csetsid();
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if(Csigaction(SIGHUP, &sa, NULL) < 0)
+    {
+        DBG("Add SIGHUP fail!");
+    }
+    if((pid = Cfork()) < 0)
+    {
+        DBG("%s fork fail!",cmd);
+	    return false;
+    }
+    else if(pid != 0)
+    {
+         Cexit(0);
+    }
+
+    if(Cchdir("/") < 0)
+    {
+        DBG("can not change directory to /");
+    }
+
+    if(rl.rlim_max == RLIM_INFINITY)
+    {
+        rl.rlim_max = 1024;
+    }
+    for(i = 0; i < rl.rlim_max; i++)
+    {
+        close(i);
+    }
+
+    fd0 = open("/dev/null", O_RDWR);
+    fd1 = dup(0);
+    fd2 = dup(0);
+    return true;
+    
+}
 /*
 错误——返回-1，具体错误码保存在errno中
 
@@ -329,7 +391,10 @@ VOID Cseekdir(DIR* dir, LONG loc)
 {
     seekdir(dir, loc);
 }
-
+mode_t Cumask(mode_t cmask)
+{
+    return umask(cmask);
+}
 bool getLocalTime(CHAR* mtime, INT32 len)
 {
     if(mtime == NULL || len < 0)
@@ -372,7 +437,10 @@ INT32 Cputs(const CHAR* str)
 {
     return puts(str);
 }
-
+pid_t Csetsid(VOID)
+{
+    return setsid();
+}
 pid_t Cgetpid(VOID)
 {
     return getpid();
@@ -486,6 +554,15 @@ INT32 Cunsetenv(const CHAR* name)
 {
     return unsetenv(name);
 }
+INT32 Cgetrlimit(INT32 resource, struct rlimit *rlptr)
+{
+    return getrlimit(resource, rlptr);
+}
+INT32 Csetrlimit(INT32 resource, const struct rlimit *rlptr)
+{
+    return setrlimit(resource, rlptr);
+}
+
 /*********************************IOSC**********************************/
 struct passwd* Cgetpwnam(const CHAR* name)
 {

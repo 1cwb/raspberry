@@ -47,7 +47,7 @@ pthread_t Thread::CpthreadSelf()
 {
 	return pthread_self();
 }
-bool Thread::Cpthread_equal(const pthread_t tid)
+bool Thread::CpthreadEqual(const pthread_t tid)
 {
 	if(pthread_equal(threadId_, tid) != 0)
 	{

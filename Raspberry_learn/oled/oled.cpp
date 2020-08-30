@@ -18,7 +18,7 @@ Oled::Oled()
 }
 Oled::~Oled()
 {
-    DBG();
+    DBG(" address is %p",&oled_demo);
 }
 
 bool Oled::init(INT32 ch)

@@ -26,7 +26,8 @@ INT32 main()
 {
     DBG("my PID is %d",Cgetpid());
     DBG("Raspberry Service Running!!!");
-
+    Daemonize("daemon1");
+    
 #ifdef OLED_DRIVER_ON
     queue_buf *oled_data = NULL;
     CHAR myTime[32] = {0};
@@ -41,6 +42,7 @@ INT32 main()
     th_usb_event_parse.setThreadFunc(usbEvendParse, NULL);
     th_usb_event_listen.start();
     th_usb_event_parse.start();
+
     while(true)
     {
     #ifdef OLED_DRIVER_ON
@@ -69,7 +71,5 @@ INT32 main()
 #ifdef OLED_DRIVER_ON
     msg_oled.setMsgCancel();
 #endif
-    th_usb_event_listen.join();
-    th_usb_event_parse.join();
 	return 0;
 }

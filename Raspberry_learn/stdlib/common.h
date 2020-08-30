@@ -62,13 +62,6 @@ typedef VOID SIG_FUNC(INT32);
 
 #define IP_RULE "([0-9]{1,3}[.]){3}[0-9]{1,3}"
 
-INT32 Cgeterrno();
-CHAR* Cstrerror(INT32 Cerrno);
-bool FindPattern(const CHAR* pContent, const CHAR* pPattern, INT32 &nStart, INT32 &nEnd);
-bool DoComman(const CHAR* cmd, const CHAR* type, CHAR* result, size_t len);
-bool GetIPFromIfconfig(const CHAR* cmd_buff, const CHAR* partten, CHAR IP[], INT32 IP_len);
-bool getLocalTime(CHAR* mtime, INT32 len);
-bool RemoveCRLF(CHAR* data);
 /*
  *These functhion is Linux Kernel space function
 */
@@ -344,6 +337,7 @@ VOID Cabort(VOID);
 INT32 Cnanosleep(const struct timespec *reqtp, timespec *remtp);
 INT32 Cclock_nanosleep(clockid_t clock_id, INT32 flags, const struct timespec *reqtp, timespec *remtp);
 /*********************************IOSC**********************************/
+pid_t Csetsid(VOID);
 pid_t Cgetpid(VOID);
 pid_t Cgetppid(VOID);
 uid_t Cgetuid(VOID);
@@ -360,6 +354,7 @@ INT32 Csetreuid(uid_t ruid, uid_t euid); //exchange ruid and euid
 INT32 Csetregid(gid_t rgid, gid_t egid);
 INT32 Cseteuid(uid_t uid);
 INT32 Csetegid(gid_t gid);
+
 
 pid_t Cfork(VOID);
 pid_t Cwait(INT32* statloc);
@@ -447,8 +442,18 @@ RLIMIT_SWAP
 RLIMIT_VMEM
 
 */
-INT32 Cgetlimit(INT32 resource, struct rlimit *rlptr);
-INT32 Csetlimit(INT32 resource, const struct rlimit *rlptr);
+INT32 Cgetrlimit(INT32 resource, struct rlimit *rlptr);
+INT32 Csetrlimit(INT32 resource, const struct rlimit *rlptr);
+
+INT32 Cgeterrno();
+CHAR* Cstrerror(INT32 Cerrno);
+bool FindPattern(const CHAR* pContent, const CHAR* pPattern, INT32 &nStart, INT32 &nEnd);
+bool DoComman(const CHAR* cmd, const CHAR* type, CHAR* result, size_t len);
+bool GetIPFromIfconfig(const CHAR* cmd_buff, const CHAR* partten, CHAR IP[], INT32 IP_len);
+bool getLocalTime(CHAR* mtime, INT32 len);
+bool RemoveCRLF(CHAR* data);
+bool Daemonize(const CHAR* cmd);
+
 
 typedef enum
 {
