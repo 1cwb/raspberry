@@ -22,11 +22,11 @@ Msg msg_test((char*)"queuetest",MAX_MSG_QUEUE_SIZE,1);
 Msg msg_oled((char*)"msg_oled",MAX_MSG_QUEUE_SIZE,1);
 #endif
 
-INT32 main()
+INT32 main(INT32 argc, CHAR** argv)
 {
     DBG("my PID is %d",Cgetpid());
     DBG("Raspberry Service Running!!!");
-    Daemonize("daemon1");
+    Daemonize(argv[0]);
     
 #ifdef OLED_DRIVER_ON
     queue_buf *oled_data = NULL;

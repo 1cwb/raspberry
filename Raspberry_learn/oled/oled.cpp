@@ -14,11 +14,11 @@ Oled Oled::oled_demo;
 
 Oled::Oled()
 {
-    DBG();
+    //DBG();
 }
 Oled::~Oled()
 {
-    DBG(" address is %p",&oled_demo);
+    //DBG();
 }
 
 bool Oled::init(INT32 ch)

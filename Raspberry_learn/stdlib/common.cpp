@@ -115,9 +115,10 @@ bool Daemonize(const CHAR* cmd)
     struct rlimit rl;
     struct sigaction sa;
 
-    DBG("start daemon named %s",cmd);
-    Cumask(0);
+    DBG("Start daemon named %s !",cmd);
 
+    Cumask(0);
+   
     if(Cgetrlimit(RLIMIT_NOFILE, &rl) < 0)
     {
         DBG("%s can not get file limit", cmd);
@@ -166,8 +167,11 @@ bool Daemonize(const CHAR* cmd)
     fd0 = open("/dev/null", O_RDWR);
     fd1 = dup(0);
     fd2 = dup(0);
+    if(fd0 != 0 || fd1 != 1 || fd2 != 2)
+    {
+        DBG("close fd0-fd2 fail!");
+    }
     return true;
-    
 }
 /*
 错误——返回-1，具体错误码保存在errno中
