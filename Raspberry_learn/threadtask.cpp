@@ -4,7 +4,7 @@
 #include "cfile.h"
 #include "thread.h"
 #include "msg.h"
-
+#include "clog.h"
 
 #ifdef OLED_DRIVER_ON
 #include "oled.h"
@@ -41,22 +41,21 @@ VOID* parseIniFile(VOID* p)
     strcat(resultFileName,RASPBERRY_IP_FILE);
     if(Caccess(fileName, F_OK) == 0)
     {
-        DBG("OPEN CMD FILE %s",fileName);
-        DBG("OPEN RESULT FILE %s",resultFileName);
+        LOG_DEBUG("OPEN CMD FILE %s",fileName);
+        LOG_DEBUG("OPEN RESULT FILE %s",resultFileName);
         Cfile raspFile(fileName, "rb");
         Cfile resutFile(resultFileName, "ab+");
-        DBG("%s",Cstrerror(errno));
         if(raspFile.isFileopenSuccess())
         {
             while(!raspFile.Cfeof() && raspFile.Cfgets(cmdBuff, 128) != NULL)
             {
                 if(FindPattern(cmdBuff, "^[ ]*#", nStart, nEnd))
                 {
-                    //DBG("%s",cmdBuff);
+                    LOG_DEBUG("main cmd class %s",cmdBuff);
                     continue;
                 }
                 RemoveCRLF(cmdBuff);
-		//DBG("xxx %s",cmdBuff);
+		        LOG_DEBUG("parse cmd line %s",cmdBuff);
                 if(strncmp(cmdBuff,RASPBERRY_SYS_CMD, strlen(RASPBERRY_SYS_CMD)) == 0)
                 {
                     dataTYpe = RASPBERRY_SYS_CMD_EM;
@@ -76,7 +75,7 @@ VOID* parseIniFile(VOID* p)
                         DBG("RUN SYSTEM COMMAND");  
                         if(!DoComman(cmdBuff, "r", resultBuff, 2048))
                         {
-                            DBG("%s",Cstrerror(Cgeterrno()));
+                            LOG_ERROR("%s",Cstrerror(Cgeterrno()));
                         }
                         if(resutFile.isFileopenSuccess())
                         {
@@ -85,42 +84,41 @@ VOID* parseIniFile(VOID* p)
                         memset(resultBuff, 0, sizeof(CHAR)*2048);
                         break;
                     case RASPBERRY_UPDATE_VALUE_EM:
-                        DBG("cmd buff is %s",cmdBuff);
+                        LOG_DEBUG("cmd buff is %s",cmdBuff);
                         if(strncmp(cmdBuff, RASPBERRY_UPDATE_VALUE_ADD_WIFI, strlen(RASPBERRY_UPDATE_VALUE_ADD_WIFI)) == 0)
-			{
-			    private_type = RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM;
-			    break;
-			}
+			            {
+			                private_type = RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM;
+			                break;
+			            }
                         switch(private_type)
-			{
-			    case RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM:
-                                 //DBG("ADD NEW WIFI NOW");
-				 if(strstr(cmdBuff, "ssid") != NULL)
-				 {
-			             strcat(tempBuff,"\nnetwork={\n");
-				     strcat(tempBuff,cmdBuff);
-				     strcat(tempBuff,"\n");
-				 }
-				 if(strstr(cmdBuff, "psk") != NULL)
-				 {
-				     strcat(tempBuff, cmdBuff);
-				     strcat(tempBuff, "\n");
-				     strcat(tempBuff,"}\n");
-				     DBG("%s",tempBuff);
-				     DBG("open file %s",WPA_SUPPLICANT_CONFIG);
-				     Cfile wpa_file(WPA_SUPPLICANT_CONFIG, "ab+");
-				     if(wpa_file.Cfwrite(tempBuff, strlen(tempBuff), 1) < 0)
-				     {
-				         DBG("Add wifi failer!");
-					 DBG("Error is %s",Cstrerror(Cgeterrno()));
-				     }
-				     private_type = RASPBERRY_UPDATE_VALUE_INVALIED_EM;
+			            {
+			                case RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM:
+				                if(strstr(cmdBuff, "ssid") != NULL)
+				                {
+			                        strcat(tempBuff,"\nnetwork={\n");
+				                    strcat(tempBuff,cmdBuff);
+				                    strcat(tempBuff,"\n");
+				                }
+				                if(strstr(cmdBuff, "psk") != NULL)
+				                {
+				                    strcat(tempBuff, cmdBuff);
+				                    strcat(tempBuff, "\n");
+				                    strcat(tempBuff,"}\n");
+				                    LOG_DEBUG("%s",tempBuff);
+				                    LOG_DEBUG("open file %s",WPA_SUPPLICANT_CONFIG);
+				                    Cfile wpa_file(WPA_SUPPLICANT_CONFIG, "a");
+				                    if(wpa_file.Cfwrite(tempBuff, strlen(tempBuff), 1) < 0)
+				                    {
+				                        LOG_ERROR("Add wifi failer!");
+					                    LOG_ERROR("Error is %s",Cstrerror(Cgeterrno()));
+				                    }
+				                     private_type = RASPBERRY_UPDATE_VALUE_INVALIED_EM;
                                      wpa_file.Cfclose();
-				 }
-			        break;
-			    default:
-				break;
-			}
+				                }
+			                    break;
+			                default:
+				            break;
+			            }
                         break;
                     default: break;
                 }
@@ -129,7 +127,7 @@ VOID* parseIniFile(VOID* p)
         }
         raspFile.Cfclose();
         resutFile.Cfclose();
-    }  
+    }
     #ifdef OLED_DRIVER_ON
     queue_buf *data_oled = NULL;
     data_oled = (queue_buf*)malloc(sizeof(queue_buf));
@@ -163,7 +161,7 @@ VOID* usbEvendParse(VOID* p)
 	
         if(data1 == NULL)
         {
-            //DBG("in main data  === NULL");
+            LOG_DEBUG("in main data  === NULL");
             continue;
         }
     //for oled
@@ -178,10 +176,10 @@ VOID* usbEvendParse(VOID* p)
         switch(data1->msg_type)
         {
             case MSG_USB_ADD:
-                DBG("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
+                LOG_INFO("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
                 strcat(filepatch,data1->msg_buf);
                 strcat(filepatch,RASPBERRY_PATH);
-                //DBG("path name is %s",filepatch);
+                LOG_DEBUG("path name is %s",filepatch);
                 state = Caccess(filepatch, F_OK);
                 if(state == 0)
                 {
@@ -208,7 +206,7 @@ VOID* usbEvendParse(VOID* p)
                 }
                 break;
             case MSG_USB_REMOVE:
-                printf("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
+                LOG_INFO("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
                 break;
             default: break;
         }
@@ -239,7 +237,7 @@ VOID* usbEvendListen(VOID* p)
                 uevent.showAllUsbPath();
                 break;
             case MSG_USB_NOT_MOUNTED:
-                DBG("usb incerted but not mounted");
+                LOG_INFO("usb incerted but not mounted");
                 break;
             case MSG_USB_REMOVE:
                 msg_test.formatMsg(data, "UsbEvent:usb remove!", strlen("UsbEvent:usb remove!") + 1, event); 

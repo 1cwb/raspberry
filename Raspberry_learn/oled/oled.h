@@ -31,7 +31,6 @@ public:
     VOID show();
 private:
     Oled();
-    static Oled oled_demo;
     INT32 i2cRead(UCHAR ucAddr, UCHAR *buf, INT32 iLen);
     INT32 i2cWrite(UCHAR ucAddr,const UCHAR *buf, INT32 iLen);
     bool I2C_Write_Byte(UCHAR value, UCHAR Cmd);
