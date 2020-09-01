@@ -44,6 +44,20 @@ bool Clog::Init(const CHAR* fileName, INT32 miniLevel)
     }
     return true;
 }
+bool Clog::Init(INT32 fd, INT32 miniLevel)
+{
+    strncpy(logfilename, "STDOUT", MAX_FILENAME_LEN - 1);
+    if(miniLevel >= 0 && miniLevel <= 4)
+    {
+        minlevel = miniLevel;
+    }
+    logfile.Cfdopen(1, "a");
+    if(!logfile.isFileopenSuccess())
+    {
+        return false;
+    }
+    return true;
+}
 VOID Clog::writeLog(LOG_LEVEL level, const CHAR* execfile, INT32 execline, const CHAR* format, ...)
 {
     if(level < minlevel)

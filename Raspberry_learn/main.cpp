@@ -26,8 +26,12 @@ INT32 main(INT32 argc, CHAR** argv)
 {
     DBG("my PID is %d",Cgetpid());
     DBG("Raspberry Service Running!!!");
+#ifdef RUN_AS_DAEMON
     Daemonize(argv[0]);
     Clog::getInstance()->Init("/home/daemeon.log",0);
+#else
+    Clog::getInstance()->Init(1,0);
+#endif
 #ifdef OLED_DRIVER_ON
     queue_buf *oled_data = NULL;
     CHAR myTime[32] = {0};

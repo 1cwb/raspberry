@@ -3,6 +3,11 @@ ifeq ($(OLED_SUPPORT), true)
 CFLAGS += -DOLED_DRIVER_ON
 $(info <-------------------add oled mode device------------------->)
 endif
+ifeq ($(DAEMON), true) 
+CFLAGS += -DRUN_AS_DAEMON
+$(info <-------------------run as a daemon------------------------>)
+endif
+
 # 指定编译器
 CC = g++
 

@@ -72,7 +72,7 @@ VOID* parseIniFile(VOID* p)
                 switch(dataTYpe)
                 {
                     case RASPBERRY_SYS_CMD_EM:
-                        DBG("RUN SYSTEM COMMAND");  
+                        LOG_DEBUG("RUN SYSTEM COMMAND");  
                         if(!DoComman(cmdBuff, "r", resultBuff, 2048))
                         {
                             LOG_ERROR("%s",Cstrerror(Cgeterrno()));
@@ -84,7 +84,7 @@ VOID* parseIniFile(VOID* p)
                         memset(resultBuff, 0, sizeof(CHAR)*2048);
                         break;
                     case RASPBERRY_UPDATE_VALUE_EM:
-                        LOG_DEBUG("cmd buff is %s",cmdBuff);
+                        LOG_DEBUG("get private cmd: %s",cmdBuff);
                         if(strncmp(cmdBuff, RASPBERRY_UPDATE_VALUE_ADD_WIFI, strlen(RASPBERRY_UPDATE_VALUE_ADD_WIFI)) == 0)
 			            {
 			                private_type = RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM;

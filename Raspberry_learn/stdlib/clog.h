@@ -24,6 +24,14 @@
 
 #define LOG_ERROR(format, ...)    \
     Clog::getInstance()->writeLog(LEVEL_ERROR, __FILE__, __LINE__, format, ##__VA_ARGS__)
+#if 0
+#define LOG_INFO_NOLOCK DBG
+#define LOG_SOCKET_DEBUG DBG
+#define LOG_DEBUG    DBG
+#define LOG_INFO     DBG
+#define LOG_WARNING  DBG
+#define LOG_ERROR    DBG
+#endif
 
 typedef enum
 {
@@ -39,7 +47,8 @@ class Clog
 public:
     ~Clog();
     static Clog* getInstance();
-    bool Init(const CHAR* fileName, INT32 miniLevel);
+    bool Init(const CHAR* fileName , INT32 miniLevel);
+    bool Init(INT32 fd, INT32 miniLevel);
     VOID writeLog(LOG_LEVEL level, const CHAR* execfile, INT32 execline, const CHAR* format, ...);
     VOID writeLogNolock(LOG_LEVEL level, const CHAR* execfile, INT32 execline, const CHAR* format, ...);
 private:

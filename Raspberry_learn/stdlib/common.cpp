@@ -48,6 +48,7 @@ bool DoComman(const CHAR* cmd, const CHAR* type, CHAR* result, size_t len)
         printf("popen cmd fail\n");
         return false;
     }
+    sync();
     if(fread(result, 1, len, fp) < 0)
     {   
         pclose(fp);
