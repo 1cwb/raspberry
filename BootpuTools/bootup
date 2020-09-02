@@ -1,0 +1,30 @@
+#!/bin/bash
+# /etc/init.d/bootup
+
+### BEGIN INIT INFO
+# Provides: bootup
+# Required-Start: $Remote_fs $syslog
+# Required-Stop: $Remote_fs $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: mybootup script
+# Description: This service is used to run bootup script
+### END INIT INFO
+
+case "$1" in
+    start)
+        echo "Start run my bootup script"
+        cd /home/pi
+        sh  bootup.sh
+        ;;
+    stop)
+        echo "Stop run my bootup script"
+        #killall bootup.sh
+        #kill $(ps aux | grep -m 1 'bootup ')
+        ;;
+    *)
+        echo "Usage: service bootup start|stop"
+        exit 1
+        ;;
+esac
+exit 0
