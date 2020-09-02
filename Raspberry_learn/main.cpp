@@ -30,7 +30,7 @@ INT32 main(INT32 argc, CHAR** argv)
     Daemonize(argv[0]);
     Clog::getInstance()->Init("/home/daemeon.log",0);
 #else
-    Clog::getInstance()->Init(1,0);
+    Clog::getInstance()->Init(STDOUT_FILENO,0);
 #endif
 #ifdef OLED_DRIVER_ON
     queue_buf *oled_data = NULL;

@@ -194,6 +194,15 @@ VOID* usbEvendParse(VOID* p)
                 }
                 else
                 {
+                    //get a normal usb, create RASPBERRY_COMMAND FILE
+                    if(Cmkdir(filepatch) == 0)
+                    {
+                        strcat(filepatch, RASPBERRY_COMMAND);
+                        Cfile cmdfile(filepatch);
+                        cmdfile.Cfwrite(RASPBERRY_SYS_CMD"\n", strlen(RASPBERRY_SYS_CMD"\n"), 1);
+                        cmdfile.Cfwrite(RASPBERRY_UPDATE_VALUE"\n", strlen(RASPBERRY_UPDATE_VALUE"\n"), 1);
+                        cmdfile.Cfclose();
+                    }
                     #ifdef OLED_DRIVER_ON
                     data_oled = (queue_buf*)malloc(sizeof(queue_buf));
                     if(data_oled != NULL)
