@@ -7,6 +7,13 @@
 #define MAX_FILENAME_LEN 256
 #define LOG_BUFF_SIZE    2048
 
+#define DBG_INFO
+#ifdef DBG_INFO
+#define DBG(fmt, ...) printf("%s()[%d] " fmt "\n",__FUNCTION__, __LINE__,##__VA_ARGS__)
+#else
+#define DBG(fmt, ...) printf("" fmt "\n",##__VA_ARGS__)
+#endif
+
 #define LOG_INFO_NOLOCK(format, ...)    \
     Clog::getInstance()->writeLog(LEVEL_INFO, __FILE__, __LINE__, format, ##__VA_ARGS__)
 
@@ -24,6 +31,15 @@
 
 #define LOG_ERROR(format, ...)    \
     Clog::getInstance()->writeLog(LEVEL_ERROR, __FILE__, __LINE__, format, ##__VA_ARGS__)
+
+#define TINY_CHECK(exp) \
+{ \
+    if(!(exp)) \
+    { \
+        LOG_ERROR("File:%s, Line:%d Exp: %d is true, abort.\n",__FILE__,__LINE__,exp);abort(); \
+    } \
+}
+
 #if 0
 #define LOG_INFO_NOLOCK DBG
 #define LOG_SOCKET_DEBUG DBG

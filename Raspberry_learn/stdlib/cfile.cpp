@@ -1,6 +1,7 @@
 #include "cfile.h"
 #include <wchar.h>
 #include <errno.h>
+#include "clog.h"
 
 Cfile::Cfile() : file(NULL)
 {

@@ -6,6 +6,7 @@
 #include <time.h>
 #include <errno.h>
 #include "common.h"
+#include "clog.h"
 
 Condition::Condition(MutexLock &mutex) : mutex_(mutex)
 {

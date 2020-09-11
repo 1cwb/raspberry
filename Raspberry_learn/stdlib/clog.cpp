@@ -51,7 +51,7 @@ bool Clog::Init(INT32 fd, INT32 miniLevel)
     {
         minlevel = miniLevel;
     }
-    logfile.Cfdopen(1, "a");
+    logfile.Cfdopen(fd, "a");
     if(!logfile.isFileopenSuccess())
     {
         return false;

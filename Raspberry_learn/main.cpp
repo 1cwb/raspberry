@@ -12,6 +12,7 @@
 #include "csignal.h"
 #include "threadtask.h"
 #include "clog.h"
+#include "cepoll.h"
 #ifdef OLED_DRIVER_ON
 #include "oled.h"
 #endif

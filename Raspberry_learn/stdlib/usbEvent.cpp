@@ -2,6 +2,7 @@
 #include "common.h"
 #include "cfile.h"
 #include "deelx.h"
+#include "clog.h"
 
 usbEvent::usbEvent() : sockid(-1)
 {

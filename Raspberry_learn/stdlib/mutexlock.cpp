@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "mutexlock.h"
+#include "clog.h"
 MutexLock::MutexLock():isLocking_(false)
 {
     TINY_CHECK(!pthread_mutex_init(&mutex_, NULL));

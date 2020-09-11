@@ -6,7 +6,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <dirent.h>
-
+#include "clog.h"
 
 CfileSys::CfileSys() : fd(-1), isOpenFileSucces(false)
 {

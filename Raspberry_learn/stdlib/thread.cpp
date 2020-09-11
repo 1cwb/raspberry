@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "thread.h"
+#include "clog.h"
 Thread::Thread() : thFunc(NULL), param(NULL), threadId_(0), isRunning_(false)
 {
 	

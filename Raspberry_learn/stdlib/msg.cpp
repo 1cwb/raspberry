@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
+#include "clog.h"
 
 Msg::Msg(const CHAR* queue_name, INT32 length, INT32 type) : 
 front(0), rear(0), length(length), queue_type(type), cond(mutex), isMsgCancel(false)

@@ -1,6 +1,6 @@
 #include "timemeasure.h"
 #include "common.h"
-
+#include "clog.h"
 TimeMeasure::TimeMeasure()
 {
     clktck = sysconf(_SC_CLK_TCK);

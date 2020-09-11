@@ -5,6 +5,7 @@
 #include "thread.h"
 #include "msg.h"
 #include "clog.h"
+#include "cepoll.h"
 
 #ifdef OLED_DRIVER_ON
 #include "oled.h"
@@ -147,13 +148,22 @@ VOID* parseIniFile(VOID* p)
 VOID* usbEvendParse(VOID* p)
 {
     INT32 state = -1;
-    
+    Cepoll mepoll(1);
+    struct epoll_event ctlevent;
+    struct epoll_event *events;
+   // mepoll.CepollCtl
     cntl_queue_ret msg_cnt = CNTL_QUEUE_INVALIED;
     queue_buf *data1 = NULL;
     #ifdef OLED_DRIVER_ON
     queue_buf *data_oled = NULL;
     #endif
     CHAR filepatch[FILE_PATCH_LEN] = {0};
+    events = (epoll_event*)malloc(sizeof(struct epoll_event) * 1024);
+    if(events == NULL)
+    {
+        LOG_ERROR("Malloc event failer!");
+        abort();
+    }
     while(msg_cnt != CNTL_QUEUE_CANCEL)
     {
         msg_cnt = msg_test.pop((VOID**)&data1,0, IPC_BLOCK);

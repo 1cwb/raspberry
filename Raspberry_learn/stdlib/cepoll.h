@@ -3,6 +3,8 @@
 
 #include "common.h"
 #include <sys/epoll.h>
+//typedef union epoll_data cepoll_data_t;
+//typedef struct epoll_event cepoll_event;
 /*
 op: EPOLL_CTL_ADD/EPOLL_CTL_MOD/EPOLL_CTL_DEL
 typedef union epoll_data
@@ -35,7 +37,7 @@ public:
     ~Cepoll();
     bool isCepollCanbeUse();
     INT32 CepollCtl(INT32 op, INT32 fd, struct epoll_event* event);
-    INT32 CepollWait(struct epoll_event* event, INT32 maxevents, INT32 timeout);
+    INT32 CepollWait(struct epoll_event* events, INT32 maxevents, INT32 timeout);
 private:
     INT32 epfd;
     bool canbeused;

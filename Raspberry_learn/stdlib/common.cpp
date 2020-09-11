@@ -11,7 +11,9 @@
 #include <assert.h>
 #include <time.h>
 #include <signal.h>
+#include "clog.h"
 #include "deelx.h"
+
 
 INT32 Cgeterrno()
 {

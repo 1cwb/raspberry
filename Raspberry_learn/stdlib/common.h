@@ -34,20 +34,6 @@ typedef unsigned long long  ULLONG;
 typedef void                VOID;
 typedef double              DOUBLE;
 typedef float               FLOAT;
-#define DBG_INFO
-#ifdef DBG_INFO
-#define DBG(fmt, ...) printf("%s()[%d] " fmt "\n",__FUNCTION__, __LINE__,##__VA_ARGS__)
-#else
-#define DBG(fmt, ...) printf("" fmt "\n",##__VA_ARGS__)
-#endif
-
-#define TINY_CHECK(exp) \
-{ \
-    if(!(exp)) \
-    { \
-        fprintf(stderr, "File:%s, Line:%d Exp: %d is true, abort.\n",__FILE__,__LINE__,exp);abort(); \
-    } \
-}
 
 #define PATCH_LEN 128
 #define FILE_NAME_LEN 128

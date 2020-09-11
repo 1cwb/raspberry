@@ -1,11 +1,11 @@
 #include "cselect.h"
 #include <string.h>
+#include "clog.h"
 Cselect::Cselect()
 {
     FD_ZERO(&readfds);
     FD_ZERO(&writefds);
     FD_ZERO(&exceptfds);
-    memset(&tvptr, 0, sizeof(tvptr));
 }
 Cselect::~Cselect()
 {
@@ -77,13 +77,8 @@ VOID Cselect::fdZeroAll()
     FD_ZERO(&readfds);
     FD_ZERO(&writefds);
     FD_ZERO(&exceptfds);
-    memset(&tvptr, 0, sizeof(tvptr));
 }
-VOID Cselect::setBlockTime(struct timeval tvptr)
-{
-    memcpy(&(this->tvptr), &tvptr, sizeof(tvptr));
-}
-INT32 Cselect::selectfd(INT32 maxfdpl)
+INT32 Cselect::selectfd(INT32 maxfdpl, struct timeval tvptr)
 {
     return select(maxfdpl, &readfds, &writefds, &exceptfds, &tvptr);
 }
