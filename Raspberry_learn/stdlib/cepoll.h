@@ -26,7 +26,7 @@ events:EPOLLIN  //fd can read
        EPOLLERR //fd error
        EPOLLHUP //
        EPOLLET  //edge triggered
-       EPOLLLT  //level triggred
+       //EPOLLLT  //level triggred
        EPOLLONESHOT //listen event one time
 */
 

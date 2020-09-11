@@ -94,6 +94,11 @@ VOID* parseIniFile(VOID* p)
                         switch(private_type)
 			            {
 			                case RASPBERRY_UPDATE_VALUE_ADD_WIFI_EM:
+                                if(Caccess(WPA_SUPPLICANT_CONFIG, F_OK))
+                                {
+                                    LOG_DEBUG("not raspberry! can not add wifi!");
+                                    break;
+                                }
 				                if(strstr(cmdBuff, "ssid") != NULL)
 				                {
 			                        strcat(tempBuff,"\nnetwork={\n");
@@ -148,22 +153,13 @@ VOID* parseIniFile(VOID* p)
 VOID* usbEvendParse(VOID* p)
 {
     INT32 state = -1;
-    Cepoll mepoll(1);
-    struct epoll_event ctlevent;
-    struct epoll_event *events;
-   // mepoll.CepollCtl
     cntl_queue_ret msg_cnt = CNTL_QUEUE_INVALIED;
     queue_buf *data1 = NULL;
     #ifdef OLED_DRIVER_ON
     queue_buf *data_oled = NULL;
     #endif
     CHAR filepatch[FILE_PATCH_LEN] = {0};
-    events = (epoll_event*)malloc(sizeof(struct epoll_event) * 1024);
-    if(events == NULL)
-    {
-        LOG_ERROR("Malloc event failer!");
-        abort();
-    }
+
     while(msg_cnt != CNTL_QUEUE_CANCEL)
     {
         msg_cnt = msg_test.pop((VOID**)&data1,0, IPC_BLOCK);
@@ -186,10 +182,10 @@ VOID* usbEvendParse(VOID* p)
         switch(data1->msg_type)
         {
             case MSG_USB_ADD:
-                LOG_INFO("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
+                LOG_INFO("Get Msg: data->type is %d, data->msg_buf is %s",data1->msg_type,data1->msg_buf);
                 strcat(filepatch,data1->msg_buf);
                 strcat(filepatch,RASPBERRY_PATH);
-                LOG_DEBUG("path name is %s",filepatch);
+                LOG_INFO("path name is %s",filepatch);
                 state = Caccess(filepatch, F_OK);
                 if(state == 0)
                 {
@@ -225,7 +221,7 @@ VOID* usbEvendParse(VOID* p)
                 }
                 break;
             case MSG_USB_REMOVE:
-                LOG_INFO("Get Msg: data->type is %d, data->msg_buf is %s\n",data1->msg_type,data1->msg_buf);
+                LOG_INFO("Get Msg: data->type is %d, data->msg_buf is %s",data1->msg_type,data1->msg_buf);
                 break;
             default: break;
         }
@@ -240,34 +236,62 @@ VOID* usbEvendListen(VOID* p)
     usbEvent uevent;
     queue_buf *data = NULL;
     CHAR usb_patch_name[USB_PATCH_NAME_LEN] = {0};
-    CHAR *buf = (char*)malloc(sizeof(CHAR) * UEVENT_BUFFER_SIZE);
+    CHAR *buf = NULL;
+
+    INT32 nepoll = 0;
+    Cepoll mepoll(1);
+    struct epoll_event ctlevent;
+    struct epoll_event *events;
+
+    buf = (char*)malloc(sizeof(CHAR) * UEVENT_BUFFER_SIZE);
+    TINY_CHECK(buf);
+
+    events = (epoll_event*)malloc(sizeof(struct epoll_event) * 1024);
+    TINY_CHECK(events);
+    
+    ctlevent.events = EPOLLIN;
+    ctlevent.data.fd = uevent.getSockid();
+    mepoll.CepollCtl(EPOLL_CTL_ADD,uevent.getSockid(), &ctlevent);
     while(true)
     {
         memset(buf, 0, UEVENT_BUFFER_SIZE * sizeof(CHAR));
         memset(usb_patch_name, 0, USB_PATCH_NAME_LEN * sizeof(CHAR));
-		recv(uevent.getSockid(), buf, UEVENT_BUFFER_SIZE, 0);
-		MSG_EVENT event = uevent.getUsbEvent(buf, usb_patch_name, USB_PATCH_NAME_LEN);
-        data = (queue_buf*)malloc(sizeof(queue_buf));
-        switch (event)
+        memset(events, 0, sizeof(struct epoll_event)* 1024);
+
+        nepoll = mepoll.CepollWait(events, 1024, -1);
+        //LOG_DEBUG("NEPOLL IS %d",nepoll);
+        for(INT32 ncount = 0; ncount < nepoll; ncount ++)
         {
-            case MSG_USB_ADD:
-                msg_test.formatMsg(data, usb_patch_name, strlen(usb_patch_name) + 1, event);
-                msg_test.push(data, 0, IPC_BLOCK);
-                uevent.showAllUsbPath();
-                break;
-            case MSG_USB_NOT_MOUNTED:
-                LOG_INFO("usb incerted but not mounted");
-                break;
-            case MSG_USB_REMOVE:
-                msg_test.formatMsg(data, "UsbEvent:usb remove!", strlen("UsbEvent:usb remove!") + 1, event); 
-	            msg_test.push(data, 0, IPC_BLOCK);
-                uevent.showAllUsbPath();
-                break;
-            default: break;
+            if((events[ncount].events & EPOLLIN) && (events[ncount].data.fd == uevent.getSockid()))
+            {
+                recv(uevent.getSockid(), buf, UEVENT_BUFFER_SIZE, 0);
+                //LOG_DEBUG("%s",buf);
+		        MSG_EVENT event = uevent.getUsbEvent(buf, usb_patch_name, USB_PATCH_NAME_LEN);
+                data = (queue_buf*)malloc(sizeof(queue_buf));
+                switch (event)
+                {
+                    case MSG_USB_ADD:
+                        msg_test.formatMsg(data, usb_patch_name, strlen(usb_patch_name) + 1, event);
+                        msg_test.push(data, 0, IPC_BLOCK);
+                        //uevent.showAllUsbPath();
+                        break;
+                    case MSG_USB_NOT_MOUNTED:
+                        LOG_INFO("usb incerted but not mounted");
+                        break;
+                    case MSG_USB_REMOVE:
+                        msg_test.formatMsg(data, "UsbEvent:usb remove!", strlen("UsbEvent:usb remove!") + 1, event); 
+	                    msg_test.push(data, 0, IPC_BLOCK);
+                        uevent.showAllUsbPath();
+                        break;
+                    default: break;
+                }
+            }
         }
     }
     free(buf);
+    free(events);
     buf = NULL;
+    events = NULL;
     return NULL;
 }
 

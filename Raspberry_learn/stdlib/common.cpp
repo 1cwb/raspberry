@@ -47,7 +47,7 @@ bool DoComman(const CHAR* cmd, const CHAR* type, CHAR* result, size_t len)
     fp = popen(cmd, type);
     if(fp == NULL)
     {  
-        printf("popen cmd fail\n");
+        LOG_ERROR("popen cmd fail");
         return false;
     }
     sync();
@@ -56,7 +56,7 @@ bool DoComman(const CHAR* cmd, const CHAR* type, CHAR* result, size_t len)
         pclose(fp);
         return false;
     }
-    printf("do command (%s) sucessful\n",cmd);
+    LOG_DEBUG("do command (%s) sucessful",cmd);
     pclose(fp);
     return true;
 }

@@ -9,7 +9,6 @@
 #include "usbEvent.h"
 #include "cfileSys.h"
 #include "fonts.h"
-#include "csignal.h"
 #include "threadtask.h"
 #include "clog.h"
 #include "cepoll.h"
@@ -29,9 +28,9 @@ INT32 main(INT32 argc, CHAR** argv)
     DBG("Raspberry Service Running!!!");
 #ifdef RUN_AS_DAEMON
     Daemonize(argv[0]);
-    Clog::getInstance()->Init("/home/daemeon.log",0);
+    Clog::getInstance()->Init("/home/daemeon.log",LEVEL_INFO);
 #else
-    Clog::getInstance()->Init(STDOUT_FILENO,0);
+    Clog::getInstance()->Init(STDOUT_FILENO,LEVEL_INFO);
 #endif
 #ifdef OLED_DRIVER_ON
     queue_buf *oled_data = NULL;

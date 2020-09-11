@@ -9,7 +9,7 @@ usbEvent::usbEvent() : sockid(-1)
     sockid = initHotplugSock();
     if(sockid < 0)
     {
-        printf("create usbEvent fail\n");
+        LOG_ERROR("create usbEvent fail");
     }
 	memset(usb_path_info, 0, sizeof(usb_path_info));
 }
@@ -29,7 +29,7 @@ bool usbEvent::addUsb(const CHAR* dev_name, const CHAR* path_name)
 			return true;
 		}
 	}
-	DBG("Err: there is no enough space to save usb dev");
+	LOG_ERROR("Err: there is no enough space to save usb dev");
 	return false;
 }
 bool usbEvent::removeUsb(const CHAR* dev_name)
@@ -40,20 +40,21 @@ bool usbEvent::removeUsb(const CHAR* dev_name)
 		{
             memset(&usb_path_info[i], 0, sizeof(usb_device_t));
 			usb_path_info[i].beused = false;
-			DBG("Remove %s successful",dev_name);
+			LOG_DEBUG("Remove %s successful",dev_name);
 			return true;
 		}
 	}
-	DBG("Err: remove %s fail, can not find it!",dev_name);
+	LOG_ERROR("Err: remove %s fail, can not find it!",dev_name);
 	return false;
 }
 VOID usbEvent::showAllUsbPath()
 {
+	LOG_DEBUG("Current Usb Device:");
 	for(INT32 i = 0; i < MAX_USB_DEV_NUM; i++)
 	{
 		if(usb_path_info[i].beused)
 		{
-           printf("Usb Dev is %s, path name is %s\n",usb_path_info[i].dev,usb_path_info[i].path_name);
+           LOG_DEBUG("Usb Dev is %s, path name is %s",usb_path_info[i].dev,usb_path_info[i].path_name);
 		}
 	}
 }
@@ -67,7 +68,7 @@ MSG_EVENT usbEvent::getUsbEvent(const CHAR* buf, CHAR* usb_patch_name, INT32 len
 	MSG_EVENT event = MSG_INVALIED;
 	if(len < USB_PATCH_NAME_LEN)
 	{
-	    DBG("Error: usb_data len is short than 128!");
+	    LOG_ERROR("Error: usb_data len is short than 128!");
 	    return event;
 	}
 	if(strstr(buf,"add")!= NULL)
@@ -109,7 +110,7 @@ MSG_EVENT usbEvent::getUsbEvent(const CHAR* buf, CHAR* usb_patch_name, INT32 len
 		    memcpy(usb_data ,buf + nStart, nEnd - nStart);
 		    usb_data[nEnd] = '\0';
 		    removeUsb(usb_data);
-             //printf("remove usb[%s] now!!!\n",usb_data);
+            LOG_DEBUG("remove usb[%s] now!!!",usb_data);
             return MSG_USB_REMOVE;
 	    }
 	}
@@ -127,7 +128,7 @@ INT32 usbEvent::initHotplugSock(void)
     INT32 hotplug_sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT);
     if (hotplug_sock == -1)
     {
-        printf("error getting socket: %s", strerror(errno));
+        LOG_ERROR("error getting socket: %s", strerror(errno));
         return -1;
     }
     /* set receive buffersize */
@@ -135,7 +136,7 @@ INT32 usbEvent::initHotplugSock(void)
     retval = bind(hotplug_sock, (struct sockaddr *) &snl, sizeof(struct sockaddr_nl));
     if (retval < 0) 
 	{
-        printf("bind failed: %s", strerror(errno));
+        LOG_ERROR("bind failed: %s", strerror(errno));
         close(hotplug_sock);
         hotplug_sock = -1;
         return -1;
