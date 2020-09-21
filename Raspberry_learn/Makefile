@@ -14,7 +14,7 @@ CC = g++
 # CFLAG包括头文件目录
 CFLAGS += -g -Wall
 # 头文件查找路径
-INC = -I./ -I./stdlib/ -I./oled/ -I./fonts/
+INC = -I./ -I./stdlib/ -I./oled/ -I./fonts/ -I./network
 
 # 静态链接库
 LDFLAGS =
@@ -26,7 +26,7 @@ TARGET = runtest
 LIBSRC += oled/oled.cpp stdlib/mutexlock.cpp stdlib/condition.cpp main.cpp threadtask.cpp stdlib/thread.cpp \
 		stdlib/msg.cpp stdlib/usbEvent.cpp stdlib/common.cpp stdlib/cfile.cpp stdlib/cfileSys.cpp \
 		stdlib/timemeasure.cpp stdlib/clog.cpp stdlib/cselect.cpp stdlib/cepoll.cpp \
-		stdlib/cmmap.cpp
+		stdlib/cmmap.cpp network/socket.cpp
 LIBFONTSRC += fonts/font8.cpp fonts/font12.cpp fonts/font16.cpp fonts/font20.cpp fonts/font24.cpp 
 
 SRC += $(LIBSRC)

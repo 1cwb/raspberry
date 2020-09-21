@@ -31,6 +31,8 @@ typedef INT_PTR             LONG;
 typedef U_PTR               ULONG;
 typedef long long           LLONG;
 typedef unsigned long long  ULLONG;
+typedef LLONG               INT64;
+typedef ULLONG              UINT64;
 typedef void                VOID;
 typedef double              DOUBLE;
 typedef float               FLOAT;
