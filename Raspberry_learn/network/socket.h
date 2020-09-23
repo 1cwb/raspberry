@@ -32,7 +32,8 @@ public:
     INT32 Csocket(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
     INT32 Cconnect(const struct sockaddr* servaddr, socklen_t addrlen);
     INT32 Cbind(const struct sockaddr* myaddr, socklen_t addrlen);
-    
+    INT32 Clisten(INT32 sockfd, INT32 backlog);
+    INT32 Caccept(struct sockaddr* cliaddr, socklen_t *addrlen);
     INT32 getsockFD();
 private:
     INT32 sockfd;
