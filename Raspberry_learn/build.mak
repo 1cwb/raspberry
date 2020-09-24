@@ -1,9 +1,14 @@
-$(info common.mak $(GLOBAL_TOP_PATH))
-include $(GLOBAL_TOP_PATH)stdlib/stdlibbuild.mak
-include $(GLOBAL_TOP_PATH)oled/oledbuild.mak
-include $(GLOBAL_TOP_PATH)network/networkbuild.mak
-include $(GLOBAL_TOP_PATH)fonts/fontsbuild.mak
-include $(GLOBAL_TOP_PATH)network/networkbuild.mak
+DIRS := $(shell find $(GLOBAL_TOP_PATH) -maxdepth 5 -type d)
+DIRS := $(filter-out $(GLOBAL_TOP_PATH), $(DIRS))
+
+MAKEFILES += $(foreach dir, $(DIRS), $(wildcard $(dir)/*.mak))
+#$(info include $(MAKEFILES))
+include $(MAKEFILES)
+#include $(GLOBAL_TOP_PATH)stdlib/stdlibbuild.mak
+#include $(GLOBAL_TOP_PATH)oled/oledbuild.mak
+#include $(GLOBAL_TOP_PATH)network/networkbuild.mak
+#include $(GLOBAL_TOP_PATH)fonts/fontsbuild.mak
+#include $(GLOBAL_TOP_PATH)network/networkbuild.mak
 
 # 链接为可执行文件
 $(TARGET): $(GLOBAL_OBJS)

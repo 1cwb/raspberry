@@ -1,5 +1,4 @@
 CUR_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-$(info $(CUR_PATH))
 
 export GLOBAL_TOP_PATH := $(CUR_PATH)
 export GLOBAL_INC :=
@@ -21,3 +20,5 @@ export GLOBAL_SRC_FILE :=
 
 # 目标
 export TARGET :=
+
+export FIRST_MAKE := $(abspath $(firstword $(MAKEFILE_LIST)))
