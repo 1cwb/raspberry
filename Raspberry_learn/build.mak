@@ -16,9 +16,9 @@ $(TARGET): $(GLOBAL_OBJS)
 
 # 清除可执行文件和目标文件
 clean:
-	rm -f $(GLOBAL_OBJS)
+	rm -f $(GLOBAL_OUTPUT_OBJS)
 	rm -f $(TARGET)
 
 # 编译规则 加入头文件 $@代表目标文件 $< 代表第一个依赖文件
-%.o:%.cpp
+$(GLOBAL_OBJS):$(GLOBAL_SRC_FILE)
 	$(GLOBAL_CC) $(GLOBAL_CFLAGS) $(GLOBAL_INC) -o $@ -c $<

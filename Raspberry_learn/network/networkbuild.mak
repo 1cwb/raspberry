@@ -14,4 +14,5 @@ LIBSRC = $(wildcard $(CUR_PATH_SRC_FILE))
 GLOBAL_SRC_FILE += $(LIBSRC)
 
 # 源文件编译为目标文件
-GLOBAL_OBJS += $(LIBSRC:.cpp=.o)
+# 源文件编译为目标文件
+GLOBAL_OBJS +=$(patsubst %.o,$(GLOBAL_OUTPUT_OBJS)/%.o,$(notdir $(patsubst %.cpp,%.o,$(LIBSRC))))
