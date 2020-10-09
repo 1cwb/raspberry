@@ -1,5 +1,7 @@
-#include "socket.h"
-#include "unistd.h"
+#include "msocket.h"
+#include <unistd.h>
+#include <string.h>
+#include <arpa/inet.h>
 Socket::Socket()
 {
 
@@ -40,10 +42,18 @@ UINT64  Socket::Cntohll(UINT64 net64bitvalue)
     }
     return net64bitvalue;
 }
-/*for TCP*/
-Tcp::Tcp(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP)
+INT32  Socket::CinetPton(INT32 family, const char* strptr, VOID* addrptr)
 {
-    sockfd = socket(family, type, protocol);
+    return inet_pton(family, strptr, addrptr);
+}
+const CHAR* Socket::CinetNtop(INT32 family, const VOID* addrptr, CHAR* strptr, size_t len)
+{
+    return inet_ntop(family, addrptr, strptr, len);
+}
+/*for TCP*/
+Tcp::Tcp() : sockfd(-1)
+{
+
 }
 Tcp::~Tcp()
 {
@@ -53,11 +63,12 @@ Tcp::~Tcp()
     }
     sockfd = -1;
 }
-/*
-INT32 Tcp::Csocket(INT32 family, INT32 type, INT32 protocol)
+
+INT32 Tcp::CreateSocket(INT32 family, INT32 type, INT32 protocol)
 {
-    return socket(family, type, protocol);
-}*/
+    sockfd = socket(family, type, protocol);
+    return sockfd;
+}
 INT32 Tcp::Cconnect(const struct sockaddr* servaddr, socklen_t addrlen)
 {
     return connect(sockfd ,servaddr, addrlen);
@@ -78,3 +89,100 @@ INT32 Tcp::getsockFD()
 {
     return sockfd;
 }
+
+/*tcp server*/
+TcpServer::TcpServer()
+{
+    len = sizeof(struct sockaddr_in);
+    memset(&servaddr, 0, len);
+
+}
+TcpServer::~TcpServer()
+{
+
+}
+VOID TcpServer::setFamily(INT32 family)
+{
+    servaddr.sin_family = family;
+}
+VOID TcpServer::setAddr(UINT32 addr)
+{
+    servaddr.sin_addr.s_addr = Socket::Chtonl(addr);
+}
+VOID TcpServer::setAddr(const CHAR* addr)
+{
+    Socket::CinetPton(AF_INET, addr, &servaddr.sin_addr);
+}
+VOID TcpServer::setPort(UINT16 port)
+{
+    servaddr.sin_port = Socket::Chtons(port);
+}
+bool TcpServer::start()
+{
+    if(tcpserver.CreateSocket() < 0)
+    {
+        return false;
+    }
+    if(tcpserver.Cbind((struct sockaddr*)&servaddr, len) < 0)
+    {
+        return false;
+    }
+    if(tcpserver.Clisten(128) < 0)
+    {
+        return false;
+    }
+    return true;
+}
+INT32 TcpServer::accept(struct sockaddr* cliaddr, socklen_t *addrlen)
+{
+    return tcpserver.Caccept(cliaddr, addrlen);
+}
+INT32 TcpServer::getSockfd()
+{
+    return tcpserver.getsockFD();
+}
+/*for client*/
+TcpClient::TcpClient()
+{
+    len = sizeof(struct sockaddr_in);
+    memset(&servaddr, 0, len);
+}
+TcpClient::~TcpClient()
+{
+
+}
+VOID TcpClient::setFamily(INT32 family)
+{
+    servaddr.sin_family = family;
+}
+VOID TcpClient::setAddr(UINT32 addr)
+{
+    servaddr.sin_addr.s_addr = Socket::Chtonl(addr);
+}
+VOID TcpClient::setAddr(const CHAR* addr)
+{
+    Socket::CinetPton(AF_INET, addr, &servaddr.sin_addr);
+}
+VOID TcpClient::setPort(UINT16 port)
+{
+    servaddr.sin_port = Socket::Chtons(port);
+}
+bool TcpClient::startConnect()
+{
+    if(tcpclient.CreateSocket() < 0)
+    {
+        return false;
+    }
+    if(tcpclient.Cconnect((const struct sockaddr*)&servaddr, len) < 0)
+    {
+        return false;
+    }
+    return true;
+}
+INT32 TcpClient::getSockfd()
+{
+    return tcpclient.getsockFD();
+}
+//Tcp tcpclient;
+//socklen_t len;
+//struct sockaddr_in servaddr;

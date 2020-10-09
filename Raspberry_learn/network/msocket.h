@@ -1,5 +1,5 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#ifndef MSOCKET_H
+#define MSOCKET_H
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include "common.h"
@@ -30,9 +30,9 @@ PROTOCOL:IPPROTO_TCP IPPROTO_UDP IPPROTO_SCTP
 class Tcp
 {
 public:
-    Tcp(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
+    Tcp();
     ~Tcp();
-    //INT32 Csocket(INT32 family, INT32 type, INT32 protocol);
+    INT32 CreateSocket(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
     INT32 Cconnect(const struct sockaddr* servaddr, socklen_t addrlen);
     INT32 Cbind(const struct sockaddr* myaddr, socklen_t addrlen);
     INT32 Clisten( INT32 backlog);
@@ -42,3 +42,38 @@ private:
     INT32 sockfd;
 };
 #endif
+
+class TcpServer
+{
+public:
+    TcpServer();
+    ~TcpServer();
+    VOID setFamily(INT32 family);
+    VOID setAddr(UINT32 addr);
+    VOID setAddr(const CHAR* addr);
+    VOID setPort(UINT16 port);
+    bool start();
+    INT32 accept(struct sockaddr* cliaddr, socklen_t *addrlen);
+    INT32 getSockfd();
+private:
+    Tcp tcpserver;
+    socklen_t len;
+    struct sockaddr_in servaddr;
+};
+
+class TcpClient
+{
+public:
+    TcpClient();
+    ~TcpClient();
+    VOID setFamily(INT32 family);
+    VOID setAddr(UINT32 addr);
+    VOID setAddr(const CHAR* addr);
+    VOID setPort(UINT16 port);
+    bool startConnect();
+    INT32 getSockfd();
+private:
+    Tcp tcpclient;
+    socklen_t len;
+    struct sockaddr_in servaddr;
+};
