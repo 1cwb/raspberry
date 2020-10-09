@@ -24,15 +24,18 @@ FAMILY:AF_INET AF_INET6 AF_LOCAL AF_ROUTE AF_KEY
 TYPE:SOCK_STREAM SOCK_DGRAM SOCK_SEQPACKET SOCK_RAW
 PROTOCOL:IPPROTO_TCP IPPROTO_UDP IPPROTO_SCTP
 */
+//INADDR_ANY
+//<netinet/in.h> in6addr_any
+//bind return fail: EADDRINUSE
 class Tcp
 {
 public:
-    Tcp();
+    Tcp(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
     ~Tcp();
-    INT32 Csocket(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
+    //INT32 Csocket(INT32 family, INT32 type, INT32 protocol);
     INT32 Cconnect(const struct sockaddr* servaddr, socklen_t addrlen);
     INT32 Cbind(const struct sockaddr* myaddr, socklen_t addrlen);
-    INT32 Clisten(INT32 sockfd, INT32 backlog);
+    INT32 Clisten( INT32 backlog);
     INT32 Caccept(struct sockaddr* cliaddr, socklen_t *addrlen);
     INT32 getsockFD();
 private:
