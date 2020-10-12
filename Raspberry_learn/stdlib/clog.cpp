@@ -24,6 +24,7 @@ Clog::~Clog()
         free(logbuff);
         logbuff = NULL;
     }
+    logfile.Cfclose();
 }
 Clog* Clog::getInstance()
 {

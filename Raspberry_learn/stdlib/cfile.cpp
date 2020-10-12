@@ -43,7 +43,7 @@ Cfile::Cfile(INT32 fd, const CHAR* type) : file(NULL)
 }
 Cfile::~Cfile()
 {
-    Cfclose();
+    //Cfclose();
 }
 bool Cfile::Cfopen(const CHAR* pathname, const CHAR* type)
 {

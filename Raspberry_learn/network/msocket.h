@@ -16,6 +16,9 @@ public:
     static UINT64  Cntohll(UINT64 net64bitvalue);
     static INT32  CinetPton(INT32 family, const char* strptr, VOID* addrptr);
     static const CHAR* CinetNtop(INT32 family, const VOID* addrptr, CHAR* strptr, size_t len);
+    static INT32 Cgetsockname(INT32 sockfd, struct sockaddr *localaddr, socklen_t *addrlen);
+    static INT32 Cgetpeername(INT32 sockfd, struct sockaddr *peeraddr, socklen_t *addrlen);
+    static INT32 Cshutdown(INT32 sockfd, INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/);
 private:
 
 };

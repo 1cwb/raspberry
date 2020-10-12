@@ -96,7 +96,7 @@ bool CfileSys::cclose()
 
 CfileSys::~CfileSys()
 {
-    cclose();
+    //cclose();
 }
 INT32 const CfileSys::getFd()
 {

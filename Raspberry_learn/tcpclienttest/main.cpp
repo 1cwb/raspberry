@@ -9,9 +9,9 @@ int main()
     Clog::getInstance()->Init(STDOUT_FILENO,LEVEL_DEBUG);
     LOG_DEBUG("Now Start a TCP client\n");
     TcpClient client;
-    client.setAddr(INADDR_ANY);
+    client.setAddr("INADDR_ANY");
     client.setFamily(AF_INET);
-    client.setPort(50001);
+    client.setPort(40960);
     if(!client.startConnect())
     {
         LOG_ERROR("start Tcp client failuer!");

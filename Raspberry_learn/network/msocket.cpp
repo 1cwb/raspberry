@@ -50,6 +50,18 @@ const CHAR* Socket::CinetNtop(INT32 family, const VOID* addrptr, CHAR* strptr, s
 {
     return inet_ntop(family, addrptr, strptr, len);
 }
+INT32 Socket::Cgetsockname(INT32 sockfd, struct sockaddr *localaddr, socklen_t *addrlen)
+{
+    return getsockname(sockfd, localaddr, addrlen);
+}
+INT32 Socket::Cgetpeername(INT32 sockfd, struct sockaddr *peeraddr, socklen_t *addrlen)
+{
+    return getpeername(sockfd, peeraddr, addrlen);
+}
+INT32 Socket::Cshutdown(INT32 sockfd, INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
+{
+    return shutdown(sockfd, howto);
+}
 /*for TCP*/
 Tcp::Tcp() : sockfd(-1)
 {
