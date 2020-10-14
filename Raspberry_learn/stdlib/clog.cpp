@@ -3,7 +3,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-static CHAR* leveStr[5] = {(CHAR*)"DEBUG",(CHAR*)"DEBUG", (CHAR*)"INFO", (CHAR*)"WARN", (CHAR*)"ERROR"};
+static const CHAR* leveStr[5] = {(CHAR*)COLOR_BLUE("DEBUG"),(CHAR*)COLOR_BLUE("DEBUG"), 
+                                    (CHAR*)COLOR_GREEN("INFO"), (CHAR*)COLOR_YELLOW("WARN"),
+                                         (CHAR*)COLOR_RED("ERROR")};
 
 Clog::Clog() : minlevel(0), logfilename(NULL), logbuff(NULL)
 {
