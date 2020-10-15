@@ -25,11 +25,16 @@ int main()
     INT32 connfd = -1;
     while(true)
     {
-        connfd = server.Caccept(NULL, NULL);
+	struct sockaddr_in6 clintaddr;
+        socklen_t clen = sizeof(struct sockaddr_in6);
+        memset(&clintaddr, 0, clen);	
+        connfd = server.Caccept((struct sockaddr*)&clintaddr, &clen);
         if(connfd < 0)
         {
             continue;
         }
+	CHAR straddr[32] = {0};
+	LOG_INFO("clinet is %s",NetTool::CinetNtop(AF_INET6, &clintaddr.sin6_addr,straddr, 32 ));
         INT32 n = write(connfd, "welcome to vistit this sex web", 31);
         if(n < 0)
         {
