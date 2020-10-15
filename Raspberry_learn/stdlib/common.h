@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <dirent.h>
 #include <pwd.h>
+#include <fcntl.h>
 
 #if __WORDSIZE == 64
 typedef long int            INT_PTR;
@@ -155,7 +156,7 @@ struct flock
 */
 INT32 Cfcntl(INT32 fd, INT32 cmd);
 INT32 Cfcntl(INT32 fd, INT32 cmd, LONG arg);
-INT32 Cfcntl(INT32 fd, INT32 cmd ,struct flock* lock);
+INT32 Cfcntl(INT32 fd, INT32 cmd ,struct flock* lock, INT32 lock_len);
 
 INT32 Cioctl(INT32 fd, ULONG request, INT32 val);
 

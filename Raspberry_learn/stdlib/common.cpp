@@ -227,9 +227,9 @@ INT32 Cfcntl(INT32 fd, INT32 cmd, LONG arg)
 {
     return fcntl(fd, cmd, arg);
 }
-INT32 Cfcntl(INT32 fd, INT32 cmd ,struct flock* lock)
+INT32 Cfcntl(INT32 fd, INT32 cmd ,struct flock* lock, INT32 lock_len)
 {
-    return fcntl(fd, cmd ,lock);
+    return fcntl(fd, cmd ,lock, lock_len);
 }
 
 INT32 Cchmod(const CHAR *path, mode_t mode)

@@ -2,199 +2,322 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
-Socket::Socket()
+#include "common.h"
+#include "clog.h"
+#include "errno.h"
+namespace NetTool 
+{
+    bool CinitSockAddr(struct sockaddr_in* servaddr, INT32 family, INT32 addr, UINT16 port)
+    {
+        servaddr->sin_family = family;
+        servaddr->sin_addr.s_addr = NetTool::Chtonl(addr);
+        servaddr->sin_port = Chtons(port);
+        return true;
+    }
+    bool CinitSockAddr(struct sockaddr_in* servaddr, INT32 family, CHAR* addr, UINT16 port)
+    {
+        servaddr->sin_family = family;
+        CinetPton(AF_INET, addr, &servaddr->sin_addr);
+        servaddr->sin_port = Chtons(port);
+        return true;
+    }
+    UINT16 Chtons(UINT16 host16bitvalue)
+    {
+        return htons(host16bitvalue);
+    }
+    UINT32 Chtonl(UINT32 host32bitvalue)
+    {
+        return htonl(host32bitvalue);
+    }
+    UINT64  Chtonll(UINT64 host64bitvalue)
+    {
+        if(__BYTE_ORDER == __LITTLE_ENDIAN)
+        {
+            return (((UINT64)htonl((UINT32)(host64bitvalue & 0x00000000FFFFFFFFULL)) << 32) | ((UINT64)htonl((UINT32)(host64bitvalue >> 32)))); 
+        }
+        return host64bitvalue;
+    }
+    UINT16 Cntohs(UINT16 net16bitvalue)
+    {
+        return ntohs(net16bitvalue);
+    }
+    UINT32 Cntohl(UINT32 net32bitvalue)
+    {
+        return ntohl(net32bitvalue);
+    }
+    UINT64  Cntohll(UINT64 net64bitvalue)
+    {
+        if(__BYTE_ORDER == __LITTLE_ENDIAN)
+        {
+            return ((((UINT64)htonl((UINT32)(net64bitvalue & 0x00000000FFFFFFFFULL))) << 32) | ((UINT64)htonl((UINT32)(net64bitvalue >> 32)))); 
+        }
+        return net64bitvalue;
+    }
+    INT32  CinetPton(INT32 family, const char* strptr, VOID* addrptr)
+    {
+        return inet_pton(family, strptr, addrptr);
+    }
+    const CHAR* CinetNtop(INT32 family, const VOID* addrptr, CHAR* strptr, size_t len)
+    {
+        return inet_ntop(family, addrptr, strptr, len);
+    }
+    INT32 Cgetsockname(INT32 sockfd, struct sockaddr *localaddr, socklen_t *addrlen)
+    {
+        return getsockname(sockfd, localaddr, addrlen);
+    }
+    INT32 Cgetpeername(INT32 sockfd, struct sockaddr *peeraddr, socklen_t *addrlen)
+    {
+        return getpeername(sockfd, peeraddr, addrlen);
+    }
+    INT32 Cshutdown(INT32 sockfd, INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
+    {
+        return shutdown(sockfd, howto);
+    }
+    INT32 Cgetsockopt(INT32 sockfd, INT32 level, INT32 optname, VOID* optval, socklen_t* optlen)
+    {
+        return getsockopt(sockfd, level, optname, optval, optlen);
+    }
+    INT32 Csetsockopt(INT32 sockfd, INT32 level, INT32 optname, const VOID* optval, socklen_t optlen)
+    {
+        return setsockopt(sockfd, level, optname, optval, optlen);
+    }
+    bool CsetfdUnblock(INT32 sockfd)
+    {
+        INT32 flags;
+        if((flags = Cfcntl(sockfd, F_GETFL, 0)) < 0)
+        {
+            return false;
+        }
+        flags |= O_NONBLOCK;
+        if(Cfcntl(sockfd, F_SETFL,flags) < 0)
+        {
+            return false;
+        }
+        return true;
+    }
+    bool Csetfdblock(INT32 sockfd)
+    {
+        INT32 flags;
+        if((flags = Cfcntl(sockfd, F_GETFL, 0)) < 0)
+        {
+            return false;
+        }
+        flags &= ~O_NONBLOCK;
+        if(Cfcntl(sockfd, F_SETFL,flags) < 0)
+        {
+            return false;
+        }
+        return true;
+    }
+    VOID testxx()
+    {
+        printf("fuck c++\n");
+    }
+}
+/*for socket*/
+Socket::Socket() : sockfd(-1)
 {
 
 }
 Socket::~Socket()
 {
+    CcloseSockfd();
+}
 
-}
-UINT16 Socket::Chtons(UINT16 host16bitvalue)
+INT32 Socket::CreateSocket(INT32 family, INT32 type, INT32 protocol)
 {
-    return htons(host16bitvalue);
+    sockfd = socket(family, type, protocol);
+    return sockfd;
 }
-UINT32 Socket::Chtonl(UINT32 host32bitvalue)
+INT32 Socket::Cconnect(const struct sockaddr* servaddr, socklen_t addrlen)
 {
-    return htonl(host32bitvalue);
+    return connect(sockfd ,servaddr, addrlen);
 }
-UINT64  Socket::Chtonll(UINT64 host64bitvalue)
+INT32 Socket::Cbind(const struct sockaddr* myaddr, socklen_t addrlen)
 {
-    if(__BYTE_ORDER == __LITTLE_ENDIAN)
-    {
-        return (((UINT64)htonl((UINT32)(host64bitvalue & 0x00000000FFFFFFFFULL)) << 32) | ((UINT64)htonl((UINT32)(host64bitvalue >> 32)))); 
-    }
-    return host64bitvalue;
+    return bind(sockfd, myaddr, addrlen);
 }
-UINT16 Socket::Cntohs(UINT16 net16bitvalue)
+INT32 Socket::Clisten(INT32 backlog)
 {
-    return ntohs(net16bitvalue);
+    return listen(sockfd, backlog);
 }
-UINT32 Socket::Cntohl(UINT32 net32bitvalue)
+INT32 Socket::Caccept(struct sockaddr* cliaddr, socklen_t *addrlen)
 {
-    return ntohl(net32bitvalue);
+    return accept(sockfd, cliaddr, addrlen);
 }
-UINT64  Socket::Cntohll(UINT64 net64bitvalue)
+INT32 Socket::getsockFD()
 {
-    if(__BYTE_ORDER == __LITTLE_ENDIAN)
-    {
-        return ((((UINT64)htonl((UINT32)(net64bitvalue & 0x00000000FFFFFFFFULL))) << 32) | ((UINT64)htonl((UINT32)(net64bitvalue >> 32)))); 
-    }
-    return net64bitvalue;
+    return sockfd;
 }
-INT32  Socket::CinetPton(INT32 family, const char* strptr, VOID* addrptr)
-{
-    return inet_pton(family, strptr, addrptr);
-}
-const CHAR* Socket::CinetNtop(INT32 family, const VOID* addrptr, CHAR* strptr, size_t len)
-{
-    return inet_ntop(family, addrptr, strptr, len);
-}
-INT32 Socket::Cgetsockname(INT32 sockfd, struct sockaddr *localaddr, socklen_t *addrlen)
-{
-    return getsockname(sockfd, localaddr, addrlen);
-}
-INT32 Socket::Cgetpeername(INT32 sockfd, struct sockaddr *peeraddr, socklen_t *addrlen)
-{
-    return getpeername(sockfd, peeraddr, addrlen);
-}
-INT32 Socket::Cshutdown(INT32 sockfd, INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
-{
-    return shutdown(sockfd, howto);
-}
-/*for TCP*/
-Tcp::Tcp() : sockfd(-1)
-{
-
-}
-Tcp::~Tcp()
+INT32 Socket::CcloseSockfd()
 {
     if(sockfd >= 0)
     {
         close(sockfd);
     }
     sockfd = -1;
+    return 0;
 }
 
-INT32 Tcp::CreateSocket(INT32 family, INT32 type, INT32 protocol)
-{
-    sockfd = socket(family, type, protocol);
-    return sockfd;
-}
-INT32 Tcp::Cconnect(const struct sockaddr* servaddr, socklen_t addrlen)
-{
-    return connect(sockfd ,servaddr, addrlen);
-}
-INT32 Tcp::Cbind(const struct sockaddr* myaddr, socklen_t addrlen)
-{
-    return bind(sockfd, myaddr, addrlen);
-}
-INT32 Tcp::Clisten(INT32 backlog)
-{
-    return listen(sockfd, backlog);
-}
-INT32 Tcp::Caccept(struct sockaddr* cliaddr, socklen_t *addrlen)
-{
-    return accept(sockfd, cliaddr, addrlen);
-}
-INT32 Tcp::getsockFD()
-{
-    return sockfd;
-}
+//
 
-/*tcp server*/
-TcpServer::TcpServer()
+TcpServer::TcpServer(INT32 family, INT32 type, INT32 protocol)
 {
-    len = sizeof(struct sockaddr_in);
-    memset(&servaddr, 0, len);
-
+    memset(&ipv4addr, 0, sizeof(struct sockaddr_in));
+    memset(&ipv6addr, 0, sizeof(struct sockaddr_in6));
+    if(family == AF_INET)
+    {
+        addrlen = sizeof(struct sockaddr_in);
+    }
+    else if(family == AF_INET6)
+    {
+        addrlen = sizeof(struct sockaddr_in6);
+    }
+    ServerFamily = family;
+    CreateSocket(family, type, protocol);
+    servaddr = NULL;
 }
 TcpServer::~TcpServer()
 {
-
+    servaddr = NULL;
 }
-VOID TcpServer::setFamily(INT32 family)
+bool TcpServer::initAddr(UINT16 port, const CHAR* addr)
 {
-    servaddr.sin_family = family;
-}
-VOID TcpServer::setAddr(UINT32 addr)
-{
-    servaddr.sin_addr.s_addr = Socket::Chtonl(addr);
-}
-VOID TcpServer::setAddr(const CHAR* addr)
-{
-    Socket::CinetPton(AF_INET, addr, &servaddr.sin_addr);
-}
-VOID TcpServer::setPort(UINT16 port)
-{
-    servaddr.sin_port = Socket::Chtons(port);
+    if(ServerFamily == AF_INET)
+    {
+        ipv4addr.sin_family = ServerFamily;
+        ipv4addr.sin_port = NetTool::Chtons(port);
+        if(addr == NULL)
+        {
+            ipv4addr.sin_addr.s_addr = NetTool::Cntohl(INADDR_ANY);
+        }
+        else
+        {
+            if(NetTool::CinetPton(ServerFamily, addr, &ipv4addr.sin_addr) < 0)
+            {
+                return false;
+            }
+        }
+        servaddr = (struct sockaddr*)&ipv4addr;
+    }
+    else if(ServerFamily == AF_INET6)
+    {
+        ipv6addr.sin6_family = ServerFamily;
+        ipv6addr.sin6_port = NetTool::Cntohs(port);
+        if(addr == NULL)
+        {
+            ipv6addr.sin6_addr = in6addr_any;
+        }
+        else
+        {
+            if(NetTool::CinetPton(ServerFamily, addr, &ipv6addr.sin6_addr) < 0)
+            {
+                return false;
+            }
+        }
+        servaddr = (struct sockaddr*)&ipv6addr;
+    }
+    else
+    {
+        return false;
+    }
+    if(Cbind(servaddr, addrlen) < 0)
+    {
+        return false;
+    }
+    return true;
 }
 bool TcpServer::start()
 {
-    if(tcpserver.CreateSocket() < 0)
-    {
-        return false;
-    }
-    if(tcpserver.Cbind((struct sockaddr*)&servaddr, len) < 0)
-    {
-        return false;
-    }
-    if(tcpserver.Clisten(128) < 0)
+    if(Clisten(128) < 0)
     {
         return false;
     }
     return true;
 }
-INT32 TcpServer::accept(struct sockaddr* cliaddr, socklen_t *addrlen)
+INT32 TcpServer::CgetFamily()
 {
-    return tcpserver.Caccept(cliaddr, addrlen);
+    return ServerFamily;
 }
-INT32 TcpServer::getSockfd()
+
+
+
+TcpClient::TcpClient(INT32 family, INT32 type, INT32 protocol) 
 {
-    return tcpserver.getsockFD();
-}
-/*for client*/
-TcpClient::TcpClient()
-{
-    len = sizeof(struct sockaddr_in);
-    memset(&servaddr, 0, len);
+    memset(&ipv4addr, 0, sizeof(struct sockaddr_in));
+    memset(&ipv6addr, 0, sizeof(struct sockaddr_in6));
+    if(family == AF_INET)
+    {
+        addrlen = sizeof(struct sockaddr_in);
+    }
+    else if(family == AF_INET6)
+    {
+        addrlen = sizeof(struct sockaddr_in6);
+    }
+    LOG_INFO("addrlen is %d",addrlen);
+    ClientFamily = family;
+    if(CreateSocket(family, type, protocol) < 0)
+    {
+        LOG_ERROR("CreateSocket failer!");
+    }
+    servaddr = NULL;
 }
 TcpClient::~TcpClient()
 {
-
+    servaddr = NULL;
 }
-VOID TcpClient::setFamily(INT32 family)
+bool TcpClient::initAddr(UINT16 port, const CHAR* addr)
 {
-    servaddr.sin_family = family;
-}
-VOID TcpClient::setAddr(UINT32 addr)
-{
-    servaddr.sin_addr.s_addr = Socket::Chtonl(addr);
-}
-VOID TcpClient::setAddr(const CHAR* addr)
-{
-    Socket::CinetPton(AF_INET, addr, &servaddr.sin_addr);
-}
-VOID TcpClient::setPort(UINT16 port)
-{
-    servaddr.sin_port = Socket::Chtons(port);
-}
-bool TcpClient::startConnect()
-{
-    if(tcpclient.CreateSocket() < 0)
+    if(ClientFamily == AF_INET)
     {
-        return false;
+        ipv4addr.sin_family = ClientFamily;
+        ipv4addr.sin_port = NetTool::Chtons(port);
+        if(addr == NULL)
+        {
+            ipv4addr.sin_addr.s_addr = NetTool::Cntohl(INADDR_ANY);
+        }
+        else
+        {
+            if(NetTool::CinetPton(ClientFamily, addr, &ipv4addr.sin_addr) < 0)
+            {
+                return false;
+            }
+        }
+        servaddr = (struct sockaddr*)&ipv4addr;
     }
-    if(tcpclient.Cconnect((const struct sockaddr*)&servaddr, len) < 0)
+    else if(ClientFamily == AF_INET6)
+    {
+        ipv6addr.sin6_family = ClientFamily;
+        ipv6addr.sin6_port = NetTool::Cntohs(port);
+        if(addr == NULL)
+        {
+            ipv6addr.sin6_addr = in6addr_any;
+        }
+        else
+        {
+            if(NetTool::CinetPton(ClientFamily, addr, &ipv6addr.sin6_addr) < 0)
+            {
+                return false;
+            }
+        }
+        servaddr = (struct sockaddr*)&ipv6addr;
+    }
+    else
     {
         return false;
     }
     return true;
 }
-INT32 TcpClient::getSockfd()
+bool TcpClient::startConnect()
 {
-    return tcpclient.getsockFD();
+    if(Cconnect(servaddr, addrlen) < 0)
+    {
+        LOG_ERROR("connect faile: %s",strerror(errno));
+        return false;
+    }
+    return true;
 }
-//Tcp tcpclient;
-//socklen_t len;
-//struct sockaddr_in servaddr;
+INT32 TcpClient::CgetFamily()
+{
+    return ClientFamily;    
+}
