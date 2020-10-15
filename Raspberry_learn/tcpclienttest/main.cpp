@@ -10,7 +10,7 @@ int main()
     LOG_INFO("Now Start a TCP client");
  
     TcpClient client(AF_INET6);
-    if(!client.initAddr(40960, "fe80::d6ac:9cb2:b986:1b6c"))
+    if(!client.initAddr(40960, "2001:470:1f01:f52b::2"))
     {
         LOG_ERROR("init client failer!");
         return -1;

@@ -30,13 +30,13 @@ int main()
         {
             continue;
         }
-        INT32 n = write(server.getsockFD(), "welcome to vistit this sex web", 31);
+        INT32 n = write(connfd, "welcome to vistit this sex web", 31);
         if(n < 0)
         {
             LOG_ERROR("write date to client failer!");
         }
-        //NetTool::Cshutdown(connfd,SHUT_RD);
-        server.CcloseSockfd();
+        NetTool::Cshutdown(connfd,SHUT_RD);
+        close(connfd);
         LOG_INFO("connect over!");
     }
     return 0;

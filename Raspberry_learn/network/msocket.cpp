@@ -3,8 +3,6 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include "common.h"
-#include "clog.h"
-#include "errno.h"
 namespace NetTool 
 {
     bool CinitSockAddr(struct sockaddr_in* servaddr, INT32 family, INT32 addr, UINT16 port)
@@ -254,12 +252,8 @@ TcpClient::TcpClient(INT32 family, INT32 type, INT32 protocol)
     {
         addrlen = sizeof(struct sockaddr_in6);
     }
-    LOG_INFO("addrlen is %d",addrlen);
     ClientFamily = family;
-    if(CreateSocket(family, type, protocol) < 0)
-    {
-        LOG_ERROR("CreateSocket failer!");
-    }
+    CreateSocket(family, type, protocol);
     servaddr = NULL;
 }
 TcpClient::~TcpClient()
@@ -268,7 +262,7 @@ TcpClient::~TcpClient()
 }
 bool TcpClient::initAddr(UINT16 port, const CHAR* addr)
 {
-    if(ClientFamily == AF_INET)
+        if(ClientFamily == AF_INET)
     {
         ipv4addr.sin_family = ClientFamily;
         ipv4addr.sin_port = NetTool::Chtons(port);
@@ -312,7 +306,6 @@ bool TcpClient::startConnect()
 {
     if(Cconnect(servaddr, addrlen) < 0)
     {
-        LOG_ERROR("connect faile: %s",strerror(errno));
         return false;
     }
     return true;
