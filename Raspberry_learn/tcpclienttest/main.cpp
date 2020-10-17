@@ -9,7 +9,7 @@ int main()
     Clog::getInstance()->Init(STDOUT_FILENO,LEVEL_DEBUG);
     LOG_INFO("Now Start a TCP client");
  
-    TcpClient client(AF_INET);
+    NetClient client(AF_INET);
     if(!client.initAddr(40960, "192.168.31.6"))
     {
         LOG_ERROR("init client failer!");

@@ -19,10 +19,13 @@ namespace NetTool
     INT32 Cgetsockopt(INT32 sockfd, INT32 level, INT32 optname, VOID* optval, socklen_t* optlen);
     INT32 Csetsockopt(INT32 sockfd, INT32 level, INT32 optname, const VOID* optval, socklen_t optlen);
     bool Csetfdblock(INT32 sockfd, const bool block);
-    bool CsetSockNodelay(INT32 sockfd, const bool nodelay);
+    bool CsetTCPSockNodelay(INT32 sockfd, const bool nodelay);//just for tcp
     bool CsetReuseAddr(INT32 sockfd, const bool reuseaddr);
     bool CsetReusePort(INT32 sockfd, const bool reuseport);
     INT32 CgetSockFamily(INT32 sockfd);
+
+    ssize_t Crecvfrom(INT32 sockfd, VOID* buff, size_t nbytes, INT32 flags, struct sockaddr *from, socklen_t* addrlen);
+    ssize_t Csendto(INT32 sockfd, const VOID* buff, size_t nbytes, INT32 flags, const struct sockaddr* to, socklen_t addrlen);
 }
 /*
 FAMILY:AF_INET AF_INET6 AF_LOCAL AF_ROUTE AF_KEY
@@ -48,11 +51,11 @@ private:
     INT32 sockfd;
 };
 
-class TcpServer : public Socket
+class NetServer : public Socket
 {
 public:
-    TcpServer(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
-    ~TcpServer();
+    NetServer(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
+    ~NetServer();
     bool initAddr(UINT16 port, const CHAR* addr = NULL);
     bool start();
     INT32 CgetFamily();
@@ -64,11 +67,11 @@ private:
     socklen_t addrlen;
 };
 
-class TcpClient : public Socket
+class NetClient : public Socket
 {
 public:
-    TcpClient(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
-    ~TcpClient();
+    NetClient(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
+    ~NetClient();
     bool initAddr(UINT16 port, const CHAR* addr);
     bool startConnect();
     INT32 CgetFamily();
@@ -79,16 +82,4 @@ private:
     struct sockaddr_in6 ipv6addr;
     socklen_t addrlen;
 };
-
-class Udp
-{
-public:
-    Udp();
-    ~Udp();
-    ssize_t Crecvfrom(VOID* buff, size_t nbytes, INT32 flags, struct sockaddr *from, socklen_t* addrlen);
-    ssize_t Csendto(const VOID* buff, size_t nbytes, INT32 flags, const struct sockaddr* to, socklen_t* addrlen);
-private:
-    INT32 sockfd;
-};
-
 #endif

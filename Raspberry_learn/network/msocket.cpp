@@ -95,7 +95,7 @@ namespace NetTool
         }
         return true;
     }
-    bool CsetSockNodelay(INT32 sockfd, const bool nodelay)
+    bool CsetTCPSockNodelay(INT32 sockfd, const bool nodelay)
     {
         INT32 flags = nodelay ? 1:0;
         if(Csetsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags)) < 0)
@@ -131,6 +131,14 @@ namespace NetTool
             return -1;
         }
         return addr.ss_family;
+    }
+    ssize_t Crecvfrom(INT32 sockfd, VOID* buff, size_t nbytes, INT32 flags, struct sockaddr *from, socklen_t* addrlen)
+    {
+        return recvfrom(sockfd, buff, nbytes, flags, from, addrlen);
+    }
+    ssize_t Csendto(INT32 sockfd, const VOID* buff, size_t nbytes, INT32 flags, const struct sockaddr* to, socklen_t addrlen)
+    {
+        return sendto(sockfd, buff, nbytes, flags, to, addrlen);
     }
 }
 /*for socket*/
@@ -180,7 +188,7 @@ INT32 Socket::CcloseSockfd()
 
 //
 
-TcpServer::TcpServer(INT32 family, INT32 type, INT32 protocol)
+NetServer::NetServer(INT32 family, INT32 type, INT32 protocol)
 {
     memset(&ipv4addr, 0, sizeof(struct sockaddr_in));
     memset(&ipv6addr, 0, sizeof(struct sockaddr_in6));
@@ -196,11 +204,11 @@ TcpServer::TcpServer(INT32 family, INT32 type, INT32 protocol)
     CreateSocket(family, type, protocol);
     servaddr = NULL;
 }
-TcpServer::~TcpServer()
+NetServer::~NetServer()
 {
     servaddr = NULL;
 }
-bool TcpServer::initAddr(UINT16 port, const CHAR* addr)
+bool NetServer::initAddr(UINT16 port, const CHAR* addr)
 {
     if(ServerFamily == AF_INET)
     {
@@ -246,7 +254,7 @@ bool TcpServer::initAddr(UINT16 port, const CHAR* addr)
     }
     return true;
 }
-bool TcpServer::start()
+bool NetServer::start()
 {
     if(Clisten(128) < 0)
     {
@@ -254,14 +262,14 @@ bool TcpServer::start()
     }
     return true;
 }
-INT32 TcpServer::CgetFamily()
+INT32 NetServer::CgetFamily()
 {
     return ServerFamily;
 }
 
 
 
-TcpClient::TcpClient(INT32 family, INT32 type, INT32 protocol) 
+NetClient::NetClient(INT32 family, INT32 type, INT32 protocol) 
 {
     memset(&ipv4addr, 0, sizeof(struct sockaddr_in));
     memset(&ipv6addr, 0, sizeof(struct sockaddr_in6));
@@ -277,11 +285,11 @@ TcpClient::TcpClient(INT32 family, INT32 type, INT32 protocol)
     CreateSocket(family, type, protocol);
     servaddr = NULL;
 }
-TcpClient::~TcpClient()
+NetClient::~NetClient()
 {
     servaddr = NULL;
 }
-bool TcpClient::initAddr(UINT16 port, const CHAR* addr)
+bool NetClient::initAddr(UINT16 port, const CHAR* addr)
 {
         if(ClientFamily == AF_INET)
     {
@@ -323,7 +331,7 @@ bool TcpClient::initAddr(UINT16 port, const CHAR* addr)
     }
     return true;
 }
-bool TcpClient::startConnect()
+bool NetClient::startConnect()
 {
     if(Cconnect(servaddr, addrlen) < 0)
     {
@@ -331,7 +339,7 @@ bool TcpClient::startConnect()
     }
     return true;
 }
-INT32 TcpClient::CgetFamily()
+INT32 NetClient::CgetFamily()
 {
     return ClientFamily;    
 }
