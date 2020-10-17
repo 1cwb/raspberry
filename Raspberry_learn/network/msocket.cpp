@@ -266,8 +266,14 @@ INT32 NetServer::CgetFamily()
 {
     return ServerFamily;
 }
-
-
+struct sockaddr* NetServer::getSockaddr()
+{
+    return servaddr; 
+}
+socklen_t NetServer::getSockaddrLen()
+{
+    return addrlen;
+}
 
 NetClient::NetClient(INT32 family, INT32 type, INT32 protocol) 
 {
@@ -342,4 +348,12 @@ bool NetClient::startConnect()
 INT32 NetClient::CgetFamily()
 {
     return ClientFamily;    
+}
+struct sockaddr* NetClient::getSockaddr()
+{
+    return servaddr; 
+}
+socklen_t NetClient::getSockaddrLen()
+{
+    return addrlen;
 }

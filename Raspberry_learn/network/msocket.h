@@ -59,6 +59,8 @@ public:
     bool initAddr(UINT16 port, const CHAR* addr = NULL);
     bool start();
     INT32 CgetFamily();
+    struct sockaddr* getSockaddr();
+    socklen_t getSockaddrLen();
 private:
     INT32 ServerFamily;
     struct sockaddr* servaddr;
@@ -75,6 +77,8 @@ public:
     bool initAddr(UINT16 port, const CHAR* addr);
     bool startConnect();
     INT32 CgetFamily();
+    struct sockaddr* getSockaddr();
+    socklen_t getSockaddrLen();
 private:
     INT32 ClientFamily;
     struct sockaddr* servaddr;
