@@ -5,20 +5,6 @@
 #include "common.h"
 namespace NetTool 
 {
-    bool CinitSockAddr(struct sockaddr_in* servaddr, INT32 family, INT32 addr, UINT16 port)
-    {
-        servaddr->sin_family = family;
-        servaddr->sin_addr.s_addr = NetTool::Chtonl(addr);
-        servaddr->sin_port = Chtons(port);
-        return true;
-    }
-    bool CinitSockAddr(struct sockaddr_in* servaddr, INT32 family, CHAR* addr, UINT16 port)
-    {
-        servaddr->sin_family = family;
-        CinetPton(AF_INET, addr, &servaddr->sin_addr);
-        servaddr->sin_port = Chtons(port);
-        return true;
-    }
     UINT16 Chtons(UINT16 host16bitvalue)
     {
         return htons(host16bitvalue);
@@ -107,9 +93,24 @@ namespace NetTool
         }
         return true;
     }
-    VOID testxx()
+    bool CsetSockNodelay(INT32 sockfd, const bool nodelay)
     {
-        printf("fuck c++\n");
+        INT32 flags = nodely ? 1:0;
+        if(Csetsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags)) < 0)
+        {
+            return false;
+        }
+        return true;
+    }
+    INT32 CgetSockFamily(INT32 sockfd)
+    {
+        struct sockaddr_storage addr;
+        socklen_t addrlen = sizeof(struct sockaddr_storage);
+        if(Cgetsockname(sockfd, (struct sockaddr*)&addr, &addrlen) < 0)
+        {
+            return -1;
+        }
+        return addr.ss_family;
     }
 }
 /*for socket*/

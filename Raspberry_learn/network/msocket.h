@@ -5,8 +5,6 @@
 #include "common.h"
 namespace NetTool
 {
-    bool CinitSockAddr(struct sockaddr_in* servaddr, INT32 family, INT32 addr, UINT16 port);
-    bool CinitSockAddr(struct sockaddr_in* servaddr, INT32 family, CHAR* addr, UINT16 port);
     UINT16 Chtons(UINT16 host16bitvalue);
     UINT32 Chtonl(UINT32 host32bitvalue);
     UINT64  Chtonll(UINT64 host64bitvalue);
@@ -22,8 +20,9 @@ namespace NetTool
     INT32 Csetsockopt(INT32 sockfd, INT32 level, INT32 optname, const VOID* optval, socklen_t optlen);
     bool CsetfdUnblock(INT32 sockfd);
     bool Csetfdblock(INT32 sockfd);
-    
-    VOID testxx();
+    bool CsetSockNodelay(INT32 sockfd, const bool nodelay);
+
+    INT32 CgetSockFamily(INT32 sockfd);
 }
 /*
 FAMILY:AF_INET AF_INET6 AF_LOCAL AF_ROUTE AF_KEY
