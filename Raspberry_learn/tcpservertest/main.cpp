@@ -12,6 +12,8 @@ int main()
     Clog::getInstance()->Init(STDOUT_FILENO,LEVEL_DEBUG);
     LOG_DEBUG("Now Start a TCP server\n");
     TcpServer server(AF_INET6);
+    NetTool::CsetReuseAddr(server.getsockFD(), true);
+    NetTool::CsetReusePort(server.getsockFD(), true);
     if(!server.initAddr(40960,NULL))
     {
         LOG_ERROR("Init Server Failer!");

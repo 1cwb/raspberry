@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 #include "common.h"
 namespace NetTool 
 {
@@ -65,42 +66,61 @@ namespace NetTool
     {
         return setsockopt(sockfd, level, optname, optval, optlen);
     }
-    bool CsetfdUnblock(INT32 sockfd)
+    bool Csetfdblock(INT32 sockfd, const bool block)
     {
         INT32 flags;
-        if((flags = Cfcntl(sockfd, F_GETFL, 0)) < 0)
+        if(block)
         {
-            return false;
+            if((flags = Cfcntl(sockfd, F_GETFL, 0)) < 0)
+            {
+                return false;
+            }
+            flags &= ~O_NONBLOCK;
+            if(Cfcntl(sockfd, F_SETFL,flags) < 0)
+            {
+                return false;
+            }
         }
-        flags |= O_NONBLOCK;
-        if(Cfcntl(sockfd, F_SETFL,flags) < 0)
+        else
         {
-            return false;
-        }
-        return true;
-    }
-    bool Csetfdblock(INT32 sockfd)
-    {
-        INT32 flags;
-        if((flags = Cfcntl(sockfd, F_GETFL, 0)) < 0)
-        {
-            return false;
-        }
-        flags &= ~O_NONBLOCK;
-        if(Cfcntl(sockfd, F_SETFL,flags) < 0)
-        {
-            return false;
+            if((flags = Cfcntl(sockfd, F_GETFL, 0)) < 0)
+            {
+                return false;
+            }
+            flags |= O_NONBLOCK;
+            if(Cfcntl(sockfd, F_SETFL,flags) < 0)
+            {
+                return false;
+            }
         }
         return true;
     }
     bool CsetSockNodelay(INT32 sockfd, const bool nodelay)
     {
-        INT32 flags = nodely ? 1:0;
+        INT32 flags = nodelay ? 1:0;
         if(Csetsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags)) < 0)
         {
             return false;
         }
         return true;
+    }
+    bool CsetReuseAddr(INT32 sockfd, const bool reuseaddr)
+    {
+        INT32 flags = reuseaddr ? 1:0;
+        if(Csetsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags)) < 0)
+        {
+            return false;
+        }
+        return true;
+    }
+    bool CsetReusePort(INT32 sockfd, const bool reuseport)
+    {
+        INT32 flags = reuseport ? 1:0;
+        if(Csetsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &flags, sizeof(flags)) < 0)
+        {
+            return false;
+        }
+        return true;        
     }
     INT32 CgetSockFamily(INT32 sockfd)
     {

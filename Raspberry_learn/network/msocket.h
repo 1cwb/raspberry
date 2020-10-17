@@ -18,10 +18,10 @@ namespace NetTool
     INT32 Cshutdown(INT32 sockfd, INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/);
     INT32 Cgetsockopt(INT32 sockfd, INT32 level, INT32 optname, VOID* optval, socklen_t* optlen);
     INT32 Csetsockopt(INT32 sockfd, INT32 level, INT32 optname, const VOID* optval, socklen_t optlen);
-    bool CsetfdUnblock(INT32 sockfd);
-    bool Csetfdblock(INT32 sockfd);
+    bool Csetfdblock(INT32 sockfd, const bool block);
     bool CsetSockNodelay(INT32 sockfd, const bool nodelay);
-
+    bool CsetReuseAddr(INT32 sockfd, const bool reuseaddr);
+    bool CsetReusePort(INT32 sockfd, const bool reuseport);
     INT32 CgetSockFamily(INT32 sockfd);
 }
 /*
