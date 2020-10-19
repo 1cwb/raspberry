@@ -3,7 +3,9 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <errno.h>
 #include "common.h"
+
 namespace NetTool 
 {
     UINT16 Chtons(UINT16 host16bitvalue)
@@ -131,6 +133,59 @@ namespace NetTool
             return -1;
         }
         return addr.ss_family;
+    }
+    INT32 Cgetaddrinfo(const CHAR* hostname, const char* service, const struct addrinfo *hints, struct addrinfo **result)
+    {
+        return getaddrinfo(hostname, service, hints, result);
+    }
+    VOID Cfreeaddrinfo(struct addrinfo *ai)
+    {
+        return freeaddrinfo(ai);
+    }
+    VOID getAddrTest()
+    {
+        struct addrinfo hints;
+        struct addrinfo *result = NULL, *ptr = NULL;
+        struct sockaddr_in* ipv4addr;
+        struct sockaddr_in6* ipv6addr;
+        socklen_t addrlen;
+        memset(&hints, 0, sizeof(struct addrinfo));
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_flags = AI_ALL;
+        CHAR strbuff[32];
+        if(Cgetaddrinfo("m2.5y1rsxmzh.club",NULL,&hints,&result) < 0)
+        {
+            printf("getaddrinfo failer! %s\n",Cstrerror(errno));
+            return;
+        }
+        printf("get addrinfo is ok\n");
+        if(result == NULL)printf("result is null\n");
+        for(ptr = result; ptr->ai_next != NULL; ptr = ptr->ai_next)
+        {
+            memset(strbuff, 0, 32);
+            if(ptr->ai_family ==AF_INET)
+            {
+                ipv4addr = (struct sockaddr_in*)ptr->ai_addr;
+                printf("family is %d\n",ptr->ai_family);
+                const CHAR *IP = CinetNtop(ptr->ai_family,&(ipv4addr->sin_addr),strbuff,32);
+                if(IP == NULL)
+                {
+                    printf("error\n");
+                }
+                printf("%s, %s\n",strbuff, IP);
+            }
+            if(ptr->ai_family ==AF_INET6)
+            {
+                ipv6addr = (struct sockaddr_in6*)ptr->ai_addr;
+                printf("family is %d\n",ptr->ai_family);
+                const CHAR *IP = CinetNtop(ptr->ai_family,&(ipv6addr->sin6_addr),strbuff,32);
+                if(IP == NULL)
+                {
+                    printf("error\n");
+                }
+                printf("%s, %s\n",strbuff, IP);
+            }
+        }
     }
     ssize_t Crecvfrom(INT32 sockfd, VOID* buff, size_t nbytes, INT32 flags, struct sockaddr *from, socklen_t* addrlen)
     {
@@ -266,14 +321,8 @@ INT32 NetServer::CgetFamily()
 {
     return ServerFamily;
 }
-struct sockaddr* NetServer::getSockaddr()
-{
-    return servaddr; 
-}
-socklen_t NetServer::getSockaddrLen()
-{
-    return addrlen;
-}
+
+
 
 NetClient::NetClient(INT32 family, INT32 type, INT32 protocol) 
 {
@@ -348,12 +397,4 @@ bool NetClient::startConnect()
 INT32 NetClient::CgetFamily()
 {
     return ClientFamily;    
-}
-struct sockaddr* NetClient::getSockaddr()
-{
-    return servaddr; 
-}
-socklen_t NetClient::getSockaddrLen()
-{
-    return addrlen;
 }

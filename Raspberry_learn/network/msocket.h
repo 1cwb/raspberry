@@ -2,6 +2,7 @@
 #define MSOCKET_H
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include "common.h"
 namespace NetTool
 {
@@ -23,7 +24,38 @@ namespace NetTool
     bool CsetReuseAddr(INT32 sockfd, const bool reuseaddr);
     bool CsetReusePort(INT32 sockfd, const bool reuseport);
     INT32 CgetSockFamily(INT32 sockfd);
+/*
+    struct addrinfo
+    {
+    int ai_flags;			//Input flags.  
+    int ai_family;		//Protocol family for socket.  
+    int ai_socktype;		/Socket type.  
+    int ai_protocol;		// Protocol for socket.  
+    socklen_t ai_addrlen;		//Length of socket address.  
+    struct sockaddr *ai_addr;	//Socket address for socket.  
+    char *ai_canonname;		// Canonical name for service location.  
+    struct addrinfo *ai_next;	// Pointer to next in list.  
+    };
+    hostname is www.xxx 
+    service is port,if service not be NULL && ai_flags = AI_NUMERICSERV, hostname must be x.x.x.x/ipv6 addr
+    hints just use ai_flags ai_family ai_socktype ai_protocol,hints can be NULL
+        ai_family:AF_INET/AF_INET6/AF_UNSPEC(ipv4 and ipv6)
+        ai_socktype: SOCK_STREAM/SOCK_DGRAME/SOCK_RAW（0 means can use all type）
+        ai_protocol: IPPROTO_TCP IPPROTO_UDP （0 means can use all type）
+        ai_flags: AI_PASSIVE（ifset it, and hostname is NULL, return sockaddr can be used by bind, return INADDR_ANY/IN6ADDR_ANY_INIT）
+                  if hostname not NULL, AI_PASSIVE is invalid, if not set AI_PASSIVE, return sockaddr can be used in connect/sendto/sendmsg
+                  AI_CANNONNAME if it be set, will return point in ai_canonname
+                  AI_NUMERICHOST if set,hostname must be x.x.x.x/ipv6 addr
+                  AI_NUMERICSERV if set,port must be num like "8080"
+                  AI_V4MAPPED if set AF_INET6,ad it is be set, it will return a address ipv4 mapped ipv6
+                  AI_ALL find ipv4 and ipv6 address 
+                  AI_ADDRCONFIG if set ipv4, find ipv4 addr, if set ipv6, find ipv6 addr
 
+*/
+    INT32 Cgetaddrinfo(const CHAR* hostname, const char* service, const struct addrinfo *hints, struct addrinfo **result);
+    VOID Cfreeaddrinfo(struct addrinfo *ai);
+    VOID getAddrTest();
+    //for udp
     ssize_t Crecvfrom(INT32 sockfd, VOID* buff, size_t nbytes, INT32 flags, struct sockaddr *from, socklen_t* addrlen);
     ssize_t Csendto(INT32 sockfd, const VOID* buff, size_t nbytes, INT32 flags, const struct sockaddr* to, socklen_t addrlen);
 }
@@ -59,8 +91,6 @@ public:
     bool initAddr(UINT16 port, const CHAR* addr = NULL);
     bool start();
     INT32 CgetFamily();
-    struct sockaddr* getSockaddr();
-    socklen_t getSockaddrLen();
 private:
     INT32 ServerFamily;
     struct sockaddr* servaddr;
@@ -77,8 +107,6 @@ public:
     bool initAddr(UINT16 port, const CHAR* addr);
     bool startConnect();
     INT32 CgetFamily();
-    struct sockaddr* getSockaddr();
-    socklen_t getSockaddrLen();
 private:
     INT32 ClientFamily;
     struct sockaddr* servaddr;
