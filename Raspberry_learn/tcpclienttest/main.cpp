@@ -7,10 +7,10 @@
 int main()
 {
     Clog::getInstance()->Init(STDOUT_FILENO,LEVEL_DEBUG);
+    NetTool:: getAddrTest();
     LOG_INFO("Now Start a TCP client");
- 
-    NetClient client(AF_INET);
-    if(!client.initAddr(40960, "192.168.31.6"))
+    NetClient client("www.google.com","http");
+    if(!client.initAddr(AF_INET,0,0,AI_CANONNAME))
     {
         LOG_ERROR("init client failer!");
         return -1;
@@ -20,13 +20,14 @@ int main()
         LOG_ERROR("connect server failer!");
         return -1;
     }
+    LOG_INFO("connect successful!");
     while(true)
     {
     CHAR buff[256] = {0};
     memset(buff, 0, 256);
-    INT32 n = read(client.getsockFD(),buff, 256); 
-    printf("GET MSG FROM SERVER: %s\n",buff);
-    if(n == 0)break;
+    INT32 n = read(client.getsockFD(),buff, 256); if(n == 0)break;
+    LOG_INFO("GET MSG FROM SERVER: %s\n",buff);
+    
     }
     return 0;
 }

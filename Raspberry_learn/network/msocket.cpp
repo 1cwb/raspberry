@@ -5,6 +5,7 @@
 #include <netinet/tcp.h>
 #include <errno.h>
 #include "common.h"
+#include "clog.h"
 
 namespace NetTool 
 {
@@ -148,19 +149,18 @@ namespace NetTool
         struct addrinfo *result = NULL, *ptr = NULL;
         struct sockaddr_in* ipv4addr;
         struct sockaddr_in6* ipv6addr;
-        socklen_t addrlen;
+        //socklen_t addrlen;
         memset(&hints, 0, sizeof(struct addrinfo));
         hints.ai_family = AF_UNSPEC;
         hints.ai_flags = AI_ALL;
         CHAR strbuff[32];
-        if(Cgetaddrinfo("m2.5y1rsxmzh.club",NULL,&hints,&result) < 0)
+        if(Cgetaddrinfo("www.google.com","http",&hints,&result) < 0)
         {
             printf("getaddrinfo failer! %s\n",Cstrerror(errno));
             return;
         }
-        printf("get addrinfo is ok\n");
-        if(result == NULL)printf("result is null\n");
-        for(ptr = result; ptr->ai_next != NULL; ptr = ptr->ai_next)
+        printf ("socket test=============start=============\n");
+        for(ptr = result; ptr != NULL; ptr = ptr->ai_next)
         {
             memset(strbuff, 0, 32);
             if(ptr->ai_family ==AF_INET)
@@ -172,7 +172,7 @@ namespace NetTool
                 {
                     printf("error\n");
                 }
-                printf("%s, %s\n",strbuff, IP);
+                printf("IP is %s, port is %d\n", IP, Cntohs(ipv4addr->sin_port));
             }
             if(ptr->ai_family ==AF_INET6)
             {
@@ -183,9 +183,11 @@ namespace NetTool
                 {
                     printf("error\n");
                 }
-                printf("%s, %s\n",strbuff, IP);
+                printf("IP is %s, port is %d\n", IP, Cntohs(ipv6addr->sin6_port));
             }
         }
+        printf("socket test==========end================\n");
+        Cfreeaddrinfo(result);
     }
     ssize_t Crecvfrom(INT32 sockfd, VOID* buff, size_t nbytes, INT32 flags, struct sockaddr *from, socklen_t* addrlen)
     {
@@ -324,71 +326,90 @@ INT32 NetServer::CgetFamily()
 
 
 
-NetClient::NetClient(INT32 family, INT32 type, INT32 protocol) 
+NetClient::NetClient(const CHAR* hostName, const CHAR* port)
 {
-    memset(&ipv4addr, 0, sizeof(struct sockaddr_in));
-    memset(&ipv6addr, 0, sizeof(struct sockaddr_in6));
-    if(family == AF_INET)
+    memset(strhostname, 0, HOSTNAMELEN);
+    memset(strport, 0, PORTLEN);
+    memset(strcanonname, 0, HOSTNAMELEN);
+    memset(&ipaddr, 0, sizeof(struct sockaddr_storage));
+
+    memcpy(strhostname, hostName, HOSTNAMELEN);
+    if(port == NULL)
     {
-        addrlen = sizeof(struct sockaddr_in);
-    }
-    else if(family == AF_INET6)
-    {
-        addrlen = sizeof(struct sockaddr_in6);
-    }
-    ClientFamily = family;
-    CreateSocket(family, type, protocol);
-    servaddr = NULL;
-}
-NetClient::~NetClient()
-{
-    servaddr = NULL;
-}
-bool NetClient::initAddr(UINT16 port, const CHAR* addr)
-{
-        if(ClientFamily == AF_INET)
-    {
-        ipv4addr.sin_family = ClientFamily;
-        ipv4addr.sin_port = NetTool::Chtons(port);
-        if(addr == NULL)
-        {
-            ipv4addr.sin_addr.s_addr = NetTool::Cntohl(INADDR_ANY);
-        }
-        else
-        {
-            if(NetTool::CinetPton(ClientFamily, addr, &ipv4addr.sin_addr) < 0)
-            {
-                return false;
-            }
-        }
-        servaddr = (struct sockaddr*)&ipv4addr;
-    }
-    else if(ClientFamily == AF_INET6)
-    {
-        ipv6addr.sin6_family = ClientFamily;
-        ipv6addr.sin6_port = NetTool::Cntohs(port);
-        if(addr == NULL)
-        {
-            ipv6addr.sin6_addr = in6addr_any;
-        }
-        else
-        {
-            if(NetTool::CinetPton(ClientFamily, addr, &ipv6addr.sin6_addr) < 0)
-            {
-                return false;
-            }
-        }
-        servaddr = (struct sockaddr*)&ipv6addr;
+        memcpy(strport, "0", 2);
     }
     else
     {
+        memcpy(strport, port, PORTLEN);
+    }
+}
+NetClient::~NetClient()
+{
+}
+bool NetClient::initAddr(INT32 family, INT32 type, INT32 protocol, INT32 flags)
+{
+    struct addrinfo hints;
+    struct addrinfo *result, *ptr;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = family;
+    hints.ai_socktype = type;
+    hints.ai_protocol = protocol;
+    hints.ai_flags = flags;
+
+    ClientFamily = family;
+    ClientType = type;
+    ClientProtocol = protocol;
+    if(NetTool::Cgetaddrinfo(strhostname, strport, &hints, &result) < 0)
+    {
+        LOG_ERROR("Cgetaddrinfo failer: %s",Cstrerror(errno));
         return false;
     }
+
+    for(ptr = result; ptr != NULL; ptr = ptr->ai_next)
+    {
+        if(CreateSocket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol) < 0)
+        {
+            continue;
+        }
+        else
+        {
+            memcpy(&ipaddr, ptr->ai_addr, ptr->ai_addrlen);
+            memcpy(strcanonname, ptr->ai_canonname, HOSTNAMELEN);
+            addrlen = ptr->ai_addrlen;
+            if(ptr->ai_family == AF_INET)
+            {
+                struct sockaddr_in *pp = (struct sockaddr_in *)&ipaddr;
+            CHAR strbuff[32] = {0};
+            LOG_INFO("--------------------------------------------");
+            LOG_INFO("ip is %s, port is %d",NetTool::CinetNtop(ptr->ai_family,&(pp->sin_addr),strbuff,32),
+                        NetTool::Cntohs(pp->sin_port));
+            LOG_INFO("--------------------------------------------");
+            }
+            else
+            {
+                                struct sockaddr_in6 *pp = (struct sockaddr_in6 *)&ipaddr;
+            CHAR strbuff[32] = {0};
+            LOG_INFO("--------------------------------------------");
+            LOG_INFO("ip is %s, port is %d",NetTool::CinetNtop(ptr->ai_family,&(pp->sin6_addr),strbuff,32),
+                        NetTool::Cntohs(pp->sin6_port));
+            LOG_INFO("--------------------------------------------");
+            }
+            
+            break;
+        }
+    }
+    if(ptr == NULL)
+    {
+        LOG_ERROR("All ip can not create sockfd!");
+        NetTool::Cfreeaddrinfo(result);
+        return false;
+    }
+    NetTool::Cfreeaddrinfo(result);
     return true;
 }
 bool NetClient::startConnect()
 {
-    if(Cconnect(servaddr, addrlen) < 0)
+    if(Cconnect((struct sockaddr*)&ipaddr, addrlen) < 0)
     {
         return false;
     }
@@ -396,5 +417,5 @@ bool NetClient::startConnect()
 }
 INT32 NetClient::CgetFamily()
 {
-    return ClientFamily;    
+    return ClientFamily;
 }

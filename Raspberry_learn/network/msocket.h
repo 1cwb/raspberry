@@ -99,19 +99,25 @@ private:
     socklen_t addrlen;
 };
 
+#define HOSTNAMELEN 128
+#define PORTLEN      8
+
 class NetClient : public Socket
 {
 public:
-    NetClient(INT32 family = AF_INET, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_TCP);
+    NetClient(const CHAR* hostName, const CHAR* port);
     ~NetClient();
-    bool initAddr(UINT16 port, const CHAR* addr);
+    bool initAddr(INT32 family = AF_UNSPEC, INT32 type = SOCK_STREAM, INT32 protocol = IPPROTO_IP, INT32 flags = AI_CANONNAME);
     bool startConnect();
     INT32 CgetFamily();
 private:
     INT32 ClientFamily;
-    struct sockaddr* servaddr;
-    struct sockaddr_in ipv4addr;
-    struct sockaddr_in6 ipv6addr;
+    INT32 ClientType;
+    INT32 ClientProtocol;
+    CHAR strhostname[HOSTNAMELEN];
+    CHAR strport[PORTLEN];
+    CHAR strcanonname[HOSTNAMELEN];
+    struct sockaddr_storage ipaddr;
     socklen_t addrlen;
 };
 #endif
