@@ -52,9 +52,22 @@ namespace NetTool
                   AI_ADDRCONFIG if set ipv4, find ipv4 addr, if set ipv6, find ipv6 addr
 
 */
-    INT32 Cgetaddrinfo(const CHAR* hostname, const char* service, const struct addrinfo *hints, struct addrinfo **result);
+    INT32 Cgetaddrinfo(const CHAR* hostname, const char* service, 
+                       const struct addrinfo *hints, 
+                       struct addrinfo **result);
     VOID Cfreeaddrinfo(struct addrinfo *ai);
     VOID getAddrTest();
+/*
+    flags: NI_DGRAM 
+           NI_NAMEEREQD
+           NI_NOFQDN
+           NI_NUMERICHOST
+           NI_NUMERICSCOPE
+           NI_NUMERICSERV
+*/
+    INT32 Cgetnameinfo(const struct sockaddr* sockaddr, socklen_t addrlen, 
+                        CHAR* host, socklen_t hostlen,
+                        CHAR* serv, socklen_t servlen, INT32 flags);
     //for udp
     ssize_t Crecvfrom(INT32 sockfd, VOID* buff, size_t nbytes, INT32 flags, struct sockaddr *from, socklen_t* addrlen);
     ssize_t Csendto(INT32 sockfd, const VOID* buff, size_t nbytes, INT32 flags, const struct sockaddr* to, socklen_t addrlen);

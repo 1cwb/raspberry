@@ -78,9 +78,9 @@ VOID Cselect::fdZeroAll()
     FD_ZERO(&writefds);
     FD_ZERO(&exceptfds);
 }
-INT32 Cselect::selectfd(INT32 maxfdpl, struct timeval tvptr)
+INT32 Cselect::selectfd(INT32 maxfdpl, struct timeval* tvptr)
 {
-    return select(maxfdpl, &readfds, &writefds, &exceptfds, &tvptr);
+    return select(maxfdpl, &readfds, &writefds, &exceptfds, tvptr);
 }
 //private:
 //fd_set readfds;

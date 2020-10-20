@@ -19,7 +19,7 @@ public:
     VOID fdSet(INT32 fd, FD_TYPE type);
     VOID fdZero(FD_TYPE type);
     VOID fdZeroAll();
-    INT32 selectfd(INT32 maxfdpl, struct timeval tvptr);
+    INT32 selectfd(INT32 maxfdpl, struct timeval* tvptr);
 private:
     fd_set readfds;
     fd_set writefds;

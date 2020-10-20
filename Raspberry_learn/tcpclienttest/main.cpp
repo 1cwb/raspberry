@@ -9,7 +9,7 @@ int main()
     Clog::getInstance()->Init(STDOUT_FILENO,LEVEL_DEBUG);
     NetTool:: getAddrTest();
     LOG_INFO("Now Start a TCP client");
-    NetClient client("www.google.com","http");
+    NetClient client("www.google.com","https");
     if(!client.initAddr(AF_INET,0,0,AI_CANONNAME))
     {
         LOG_ERROR("init client failer!");
