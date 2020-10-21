@@ -97,10 +97,31 @@ int main()
                 }
                 else
                 {
-                    if(strcmp(recvbuff,"你好") >= 0)
+                    if(strcmp(recvbuff,"你好") == 0)
                     {
-                        LOG_INFO("XXX");
-                        n = write(clientfd[nclientcount], "你好,智障", sizeof("你好,智障"));
+                        n = write(clientfd[nclientcount], "MTK_AI助手: 您好,很高兴为您服务\n", sizeof("MTK_AI助手: 您好,很高兴为您服务\n"));
+                        if(n <= 0)
+                        {
+                            LOG_ERROR("write date to client failer!");
+                            close(clientfd[nclientcount]);
+                            mnewselect.fdClear(clientfd[nclientcount], READ_FD_EM);
+                            clientfd[nclientcount] = -1;
+                        }
+                    }
+                    if(strcmp(recvbuff,"1024是什么节日") == 0)
+                    {
+                        n = write(clientfd[nclientcount], "MTK_AI助手: 屌丝节...\n", sizeof("MTK_AI助手: 屌丝节...\n"));
+                        if(n <= 0)
+                        {
+                            LOG_ERROR("write date to client failer!");
+                            close(clientfd[nclientcount]);
+                            mnewselect.fdClear(clientfd[nclientcount], READ_FD_EM);
+                            clientfd[nclientcount] = -1;
+                        }
+                    }
+                    if(strcmp(recvbuff,"你再说一遍试试") == 0)
+                    {
+                        n = write(clientfd[nclientcount], "MTK_AI助手: emmm 程序员节\n", sizeof("MTK_AI助手: emmm 程序员节\n"));
                         if(n <= 0)
                         {
                             LOG_ERROR("write date to client failer!");

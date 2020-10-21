@@ -33,7 +33,6 @@ int main()
         mselect.fdSet(file.getFILEno(), READ_FD_EM);
         mselect.fdSet(client.getsockFD(), READ_FD_EM);
         mselect.selectfd(selectNum + 1, NULL);
-        LOG_DEBUG("can read");
         if(mselect.fdIsSet(client.getsockFD(), READ_FD_EM))
         {
             CHAR recvbuff[512] = {0};
