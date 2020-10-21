@@ -27,16 +27,17 @@ int main()
         return -1;
     }
     INT32 connfd = -1;
-    INT32 selectNum = server.getsockFD() + 1;
+    //INT32 selectNum = server.getsockFD() + 1;
+    INT32 maxfd = server.getsockFD();
     mslect.fdSet(server.getsockFD(),READ_FD_EM);
     while(true)
     {
-        if(mslect.selectfd(selectNum, NULL) < 1)
+        if(mslect.selectfd(maxfd + 1, NULL) < 1)
         {
             LOG_ERROR("select return failed"); 
             continue;
         }
-        for(INT32 fd = 0; fd < selectNum; fd ++)
+        for(INT32 fd = 0; fd < maxfd + 1; fd ++)
         {
             if(mslect.fdIsSet(fd,READ_FD_EM))
             {
@@ -52,7 +53,7 @@ int main()
                         continue;
                     }
                     mslect.fdSet(connfd,READ_FD_EM);
-                    selectNum = connfd +1;
+                    maxfd = connfd > maxfd ? connfd : maxfd;
                     CHAR straddr[32] = {0};
                     LOG_INFO("clinet is %s",NetTool::CinetNtop(clintaddr.ss_family, &(((struct sockaddr_in6*)(&clintaddr))->sin6_addr),straddr, 32 ));
                     INT32 n = write(connfd, "欢迎使用联发科人工智能系统>>>", sizeof("欢迎使用联发科人工智能系统>>>"));
@@ -65,12 +66,21 @@ int main()
                 {
                     mslect.fdSet(fd,READ_FD_EM);
                     CHAR recvbuff[512] = {0};
-                    if(read(fd, recvbuff, 512) > 0)
+                    INT32 ncount = 0;
+                    if(ncount = read(fd, recvbuff, 512) > 0)
                     {
                         if(strcmp(recvbuff,"你好") >= 0)
                         {
                             write(fd, "你好,这里是联发科技人工智能中心,很高兴为您服务!",sizeof("你好,这里是联发科技人工智能中心,很高兴为您服务!"));
                         }
+                    }
+                    else if(ncount == 0)
+                    {
+                        close(fd);
+                    }
+                    else 
+                    {
+                        LOG_ERROR("something was wrong~~");
                     }
                 }
                 
