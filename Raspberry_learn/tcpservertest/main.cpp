@@ -15,7 +15,7 @@ int main()
     LOG_DEBUG("Now Start a TCP server\n");
     NetServer server(AF_INET6);
     Cselect mslect, mnewselect;
-    INT32 clientfd[MAX_FD_CLIENT] = {-1};
+    INT32 clientfd[MAX_FD_CLIENT];
     INT32 nclientcount = 0;
     INT32 nready = 0;
     INT32 connfd = 0;
@@ -34,6 +34,7 @@ int main()
     }
     maxfd = server.getsockFD();
     mnewselect.fdSet(server.getsockFD(),READ_FD_EM);
+    memset(clientfd, -1, sizeof(INT32) * MAX_FD_CLIENT);
     while(true)
     {
         mslect.fdSet(&mnewselect, READ_FD_EM);
