@@ -38,23 +38,27 @@ int main()
         {
             CHAR recvbuff[512] = {0};
             INT32 n = read(client.getsockFD(),recvbuff, 512);
-            if(n > 0)
+            if(n < 0)
+            {
+                LOG_ERROR("READ ERROR!!!!");
+            }
+            else if(n > 0)
             {
                 LOG_INFO("%s",recvbuff);
             }
+            else
+            {
+                client.CcloseSockfd();
+                break;
+            }
+            
         }
         if(mselect.fdIsSet(file.getFILEno(), READ_FD_EM))
         {
-            LOG_DEBUG("INPUT ");
             CHAR sendbuff[512] = {0};
             file.Cfgets(sendbuff,512);
-            //INT32 n = file.Cfread(sendbuff,1,512);
             file.Cfflush();
-            LOG_DEBUG("%s",sendbuff);
-            //if(n > 0)
-            {
-                write(client.getsockFD(), sendbuff, 512);
-            }
+            write(client.getsockFD(), sendbuff, 512);
         }
     }
     //file.Cfclose();

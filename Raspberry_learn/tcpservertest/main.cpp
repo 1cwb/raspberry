@@ -50,6 +50,7 @@ int main()
             }
             for(nclientcount = 0; nclientcount < MAX_FD_CLIENT; nclientcount ++)
             {
+                LOG_INFO("nclientcount is %d",nclientcount);
                 if(clientfd[nclientcount] < 0)
                 {
                     clientfd[nclientcount] = connfd;
