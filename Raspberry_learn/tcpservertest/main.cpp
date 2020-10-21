@@ -97,7 +97,7 @@ int main()
                 }
                 else
                 {
-                    if(strcmp(recvbuff,"你好") == 0)
+                    if(strcmp(recvbuff,"你好\n") == 0)
                     {
                         n = write(clientfd[nclientcount], "MTK_AI助手: 您好,很高兴为您服务\n", sizeof("MTK_AI助手: 您好,很高兴为您服务\n"));
                         if(n <= 0)
@@ -108,7 +108,7 @@ int main()
                             clientfd[nclientcount] = -1;
                         }
                     }
-                    if(strcmp(recvbuff,"1024是什么节日") == 0)
+                    if(strcmp(recvbuff,"1024是什么节\n") == 0)
                     {
                         n = write(clientfd[nclientcount], "MTK_AI助手: 屌丝节...\n", sizeof("MTK_AI助手: 屌丝节...\n"));
                         if(n <= 0)
@@ -119,8 +119,9 @@ int main()
                             clientfd[nclientcount] = -1;
                         }
                     }
-                    if(strcmp(recvbuff,"你再说一遍试试") == 0)
+                    if(strcmp(recvbuff,"??\n") == 0)
                     {
+                        sleep(1);
                         n = write(clientfd[nclientcount], "MTK_AI助手: emmm 程序员节\n", sizeof("MTK_AI助手: emmm 程序员节\n"));
                         if(n <= 0)
                         {
@@ -129,6 +130,56 @@ int main()
                             mnewselect.fdClear(clientfd[nclientcount], READ_FD_EM);
                             clientfd[nclientcount] = -1;
                         }
+                    }
+                    if(strcmp(recvbuff,"有什么才艺,表演一下\n") == 0)
+                    {
+                        n = write(clientfd[nclientcount], "MTK_AI助手: 我会对对联\n", sizeof("MTK_AI助手: 我会对对联\n"));
+                        if(n <= 0)
+                        {
+                            LOG_ERROR("write date to client failer!");
+                            close(clientfd[nclientcount]);
+                            mnewselect.fdClear(clientfd[nclientcount], READ_FD_EM);
+                            clientfd[nclientcount] = -1;
+                        }
+                    }
+                    if(strcmp(recvbuff,"那我出个上联\n") == 0)
+                    {
+                        n = write(clientfd[nclientcount], "MTK_AI助手: 好的,请讲\n", sizeof("MTK_AI助手: 好的,请讲\n"));
+                        if(n <= 0)
+                        {
+                            LOG_ERROR("write date to client failer!");
+                            close(clientfd[nclientcount]);
+                            mnewselect.fdClear(clientfd[nclientcount], READ_FD_EM);
+                            clientfd[nclientcount] = -1;
+                        }
+                    }
+                    if(strcmp(recvbuff,"磨刀不误砍柴工\n") == 0)
+                    {
+                        sleep(1);
+                        n = write(clientfd[nclientcount], "MTK_AI助手: 读完硕士再打工\n", sizeof("MTK_AI助手: 读完硕士再打工\n"));
+                        if(n <= 0)
+                        {
+                            LOG_ERROR("write date to client failer!");
+                            close(clientfd[nclientcount]);
+                            mnewselect.fdClear(clientfd[nclientcount], READ_FD_EM);
+                            clientfd[nclientcount] = -1;
+                        }
+                        sleep(2);
+                        n = write(clientfd[nclientcount], "MTK_AI助手: 肚子饿了,我先吃饭去了,你慢慢玩..\n", sizeof("MTK_AI助手: 肚子饿了,我先吃饭去了,你慢慢玩..\n"));
+                        if(n <= 0)
+                        {
+                            LOG_ERROR("write date to client failer!");
+                            close(clientfd[nclientcount]);
+                            mnewselect.fdClear(clientfd[nclientcount], READ_FD_EM);
+                            clientfd[nclientcount] = -1;
+                        }
+                        write(clientfd[nclientcount], "   MM    MM       TTTTTTTTTTTT    KK    kk\n", sizeof("   MM    MM       TTTTTTTTTTTT    KK    kk\n"));
+                        write(clientfd[nclientcount], " MM  MMM    MM    TTTTTTTTTTTT    KK  kk\n", sizeof(" MM  MMM    MM    TTTTTTTTTTTT    KK  kk\n"));
+                        write(clientfd[nclientcount], "MM    MM     MM       TTT         KKKk\n", sizeof("MM    MM     MM       TTT         KKKk\n"));
+                        write(clientfd[nclientcount], "MM    MM     MM       TTT         KKK\n", sizeof("MM    MM     MM       TTT         KKK\n"));
+                        write(clientfd[nclientcount], "MM    MM     MM       TTT         KK  kk\n", sizeof("MM    MM     MM       TTT         KK  kk\n"));
+                        write(clientfd[nclientcount], "MM    MM     MM       TTT         KK   kk\n", sizeof("MM    MM     MM       TTT         KK   kk\n"));
+                        write(clientfd[nclientcount], "MM    MM     MM       TTT         KK    kkk\n", sizeof("MM    MM     MM       TTT         KK    kkk\n"));
                     }
                 }
                 if(--nready <= 0)
