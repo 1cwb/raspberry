@@ -17,9 +17,11 @@ public:
     bool fdIsSet(INT32 fd, FD_TYPE type);
     VOID fdClear(INT32 fd, FD_TYPE type);
     VOID fdSet(INT32 fd, FD_TYPE type);
+    VOID fdSet(Cselect* mset, FD_TYPE type);
     VOID fdZero(FD_TYPE type);
     VOID fdZeroAll();
     INT32 selectfd(INT32 maxfdpl, struct timeval* tvptr);
+    fd_set* Cgetfd(FD_TYPE type);
 private:
     fd_set readfds;
     fd_set writefds;

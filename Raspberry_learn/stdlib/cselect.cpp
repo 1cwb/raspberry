@@ -57,6 +57,21 @@ VOID Cselect::fdSet(INT32 fd, FD_TYPE type)
         FD_SET(fd, &exceptfds);
     } 
 }
+VOID Cselect::fdSet(Cselect* mset, FD_TYPE type)
+{
+    if(type == READ_FD_EM)
+    {
+        memcpy(&readfds, mset->Cgetfd(type), sizeof(fd_set));
+    }
+    else if(type == WRITE_FD_EM)
+    {
+        memcpy(&writefds, mset->Cgetfd(type), sizeof(fd_set));
+    }
+    else if(type == EXCEP_FD_EM)
+    {
+        memcpy(&exceptfds, mset->Cgetfd(type), sizeof(fd_set));
+    } 
+}
 VOID Cselect::fdZero(FD_TYPE type)
 {
     if(type == READ_FD_EM)
@@ -81,6 +96,22 @@ VOID Cselect::fdZeroAll()
 INT32 Cselect::selectfd(INT32 maxfdpl, struct timeval* tvptr)
 {
     return select(maxfdpl, &readfds, &writefds, &exceptfds, tvptr);
+}
+fd_set* Cselect::Cgetfd(FD_TYPE type)
+{
+    if(type == READ_FD_EM)
+    {
+       return &readfds;
+    }
+    else if(type == WRITE_FD_EM)
+    {
+        return &writefds;
+    }
+    else if(type == EXCEP_FD_EM)
+    {
+        return &exceptfds;
+    }
+    return NULL;
 }
 //private:
 //fd_set readfds;
