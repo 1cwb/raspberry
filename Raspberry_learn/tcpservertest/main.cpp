@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <arpa/inet.h>
 #include "common.h"
 #include "clog.h"
 #include "msocket.h"
 #include "errno.h"
-#include <arpa/inet.h>
 #include "cselect.h"
 #define MAX_FD_CLIENT 1024
 int main()
@@ -62,16 +62,16 @@ int main()
             }
             mnewselect.fdSet(connfd, READ_FD_EM);
             maxfd = connfd > maxfd ? connfd : maxfd;
-            if(--nready <= 0)
-            {
-                continue;
-            }
             CHAR straddr[32] = {0};
             LOG_INFO("clinet is %s",NetTool::CinetNtop(clintaddr.ss_family, &(((struct sockaddr_in6*)(&clintaddr))->sin6_addr),straddr, 32 ));
             INT32 n = write(connfd, "欢迎使用联发科人工智能系统>>>", sizeof("欢迎使用联发科人工智能系统>>>"));
             if(n < 0)
             {
                 LOG_ERROR("write date to client failer!");
+            }
+            if(--nready <= 0)
+            {
+                continue;
             }
         }
 

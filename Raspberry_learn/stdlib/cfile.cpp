@@ -8,6 +8,13 @@ Cfile::Cfile() : file(NULL)
 
 }
 
+Cfile::Cfile(FILE* fp) : file(NULL)
+{
+    if(file == NULL)
+    {
+        file = fp;
+    }
+}
 Cfile::Cfile(VOID* buf, size_t size, const CHAR* type)/*for memory stream*/
 {
     Cfmemopen(buf, size, type);

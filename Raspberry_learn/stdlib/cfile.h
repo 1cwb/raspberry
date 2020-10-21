@@ -19,6 +19,7 @@ a+/a+b/ab+  append or create for read and write
 class Cfile
 {
 public:
+    Cfile(FILE* fp);
     Cfile(const CHAR* fileName, const CHAR* type = "a+");
     Cfile(const CHAR* fileName, const CHAR* type, FILE* fp);
     Cfile(INT32 fd, const CHAR* type = "a+");
