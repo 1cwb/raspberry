@@ -8,8 +8,8 @@
 #include <errno.h>
 #include "clog.h"
 
-Msg::Msg(const CHAR* queue_name, INT32 length, INT32 type) : 
-front(0), rear(0), length(length), queue_type(type), cond(mutex), isMsgCancel(false)
+Msg::Msg(const CHAR* queue_name, INT32 length) : 
+front(0), rear(0), length(length), cond(mutex), isMsgCancel(false)
 {
     assert(queue_name);
     assert(length >= 0);
@@ -70,12 +70,14 @@ bool Msg::isEmptyMsgQueue()
 }
 cntl_queue_ret Msg::push(VOID* data, ULONG nms, queue_flag flg)
 {
+    printf("start push\n");
     INT32 ret = -2;
     if(data == NULL)
     {
         printf("data is NULL\n");
         return CNTL_QUEUE_PARAM_ERROR;
     }
+    printf("*data is %d\n",*(INT32*)data);
     mutex.lock();
     if(isFullMsgQueue() && !isMsgCancel)
     {
@@ -95,7 +97,7 @@ cntl_queue_ret Msg::push(VOID* data, ULONG nms, queue_flag flg)
         }
         else
         {
-            //printf("xxMsgQueue is full\n");
+            printf("xxMsgQueue is full\n");
             mutex.unlock();
             return CNTL_QUEUE_FAIL;
         }
@@ -125,6 +127,7 @@ cntl_queue_ret Msg::pop(VOID** data, ULONG nms, queue_flag flg)
         {
             while(isEmptyMsgQueue() && !isMsgCancel)
             {
+                 printf("pop 111111111\n");
                 cond.wait();
             }
             
@@ -143,6 +146,7 @@ cntl_queue_ret Msg::pop(VOID** data, ULONG nms, queue_flag flg)
             return CNTL_QUEUE_FAIL;
         }
     }
+    printf("pop 222\n");
     if(flg == IPC_WAITTIMES && ret == ETIMEDOUT)
     {
         mutex.unlock();
@@ -156,6 +160,7 @@ cntl_queue_ret Msg::pop(VOID** data, ULONG nms, queue_flag flg)
     }
     cond.notify();
     mutex.unlock();
+    printf("pop 333\n");
     return isMsgCancel ? CNTL_QUEUE_CANCEL : CNTL_QUEUE_SUCESSFUL;
 }
 const CHAR* Msg::getQueueName()

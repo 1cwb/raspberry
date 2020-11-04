@@ -50,7 +50,7 @@ typedef VOID SIG_FUNC(INT32);
 #define LINUX_SIGNAL_SUPPORT_NUM 64
 
 #define IP_RULE "([0-9]{1,3}[.]){3}[0-9]{1,3}"
-
+#define MIN(a, b) (((a) <= (b)) ? (a) : (b))
 /*
  *These functhion is Linux Kernel space function
 */

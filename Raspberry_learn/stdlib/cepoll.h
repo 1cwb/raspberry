@@ -38,6 +38,8 @@ public:
     bool isCepollCanbeUse();
     INT32 CepollCtl(INT32 op, INT32 fd, struct epoll_event* event);
     INT32 CepollWait(struct epoll_event* events, INT32 maxevents, INT32 timeout);
+    INT32 CgetEpFd();
+    INT32 Cclose();
 private:
     INT32 epfd;
     bool canbeused;

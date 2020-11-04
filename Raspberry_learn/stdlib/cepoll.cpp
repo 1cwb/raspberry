@@ -15,6 +15,7 @@ Cepoll::~Cepoll()
         close(epfd);
         epfd = -1;
     }
+    canbeused = false;
 }
 INT32 Cepoll::CepollCtl(INT32 op, INT32 fd, struct epoll_event* event)
 {
@@ -27,5 +28,13 @@ INT32 Cepoll::CepollWait(struct epoll_event* events, INT32 maxevents, INT32 time
 bool Cepoll::isCepollCanbeUse()
 {
     return canbeused;
+}
+INT32 Cepoll::CgetEpFd()
+{
+    return epfd;
+}
+INT32 Cepoll::Cclose()
+{
+    return close(epfd);
 }
 //INT32 epfd;

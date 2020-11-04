@@ -4,6 +4,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include "common.h"
+#include "cepoll.h"
+
+class Connect;
 namespace NetTool
 {
     UINT16 Chtons(UINT16 host16bitvalue);
@@ -16,6 +19,7 @@ namespace NetTool
     const CHAR* CinetNtop(INT32 family, const VOID* addrptr, CHAR* strptr, size_t len);
     INT32 Cgetsockname(INT32 sockfd, struct sockaddr *localaddr, socklen_t *addrlen);
     INT32 Cgetpeername(INT32 sockfd, struct sockaddr *peeraddr, socklen_t *addrlen);
+    CHAR* CgetPeerAddrAndPort(INT32 peerfd, CHAR* addrportStr, INT32 len);
     INT32 Cshutdown(INT32 sockfd, INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/);
     INT32 Cgetsockopt(INT32 sockfd, INT32 level, INT32 optname, VOID* optval, socklen_t* optlen);
     INT32 Csetsockopt(INT32 sockfd, INT32 level, INT32 optname, const VOID* optval, socklen_t optlen);
@@ -92,6 +96,7 @@ public:
     INT32 Caccept(struct sockaddr* cliaddr, socklen_t *addrlen);
     INT32 getsockFD();
     INT32 CcloseSockfd();
+    INT32 Cshutdown();
 private:
     INT32 sockfd;
 };
@@ -132,5 +137,39 @@ private:
     CHAR strcanonname[HOSTNAMELEN];
     struct sockaddr_storage ipaddr;
     socklen_t addrlen;
+};
+
+class Connect
+{
+public:
+    Connect(INT32 fd);
+    Connect(INT32 fd, struct sockaddr* addr, socklen_t addrlen);
+    Connect(const Connect& c);
+    ~Connect();
+    INT32 Cread(VOID* buff, size_t nbytes);
+    INT32 Cwrite(const VOID* buff, size_t nbytes);
+    INT32 CcloseConnect();
+    INT32 Cshutdown(INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/);
+    INT32 CgetFD() const;
+    bool CgetSockaddr(struct sockaddr* addr, socklen_t* addrlen);
+    INT32 CgetFamily();
+    CHAR* CgetAddrStr();
+    INT32 CgetPort();
+private:
+    INT32 connectfd;
+    struct sockaddr_storage ipaddr;
+    socklen_t addrlen;
+    INT32 family;
+    INT32 port;
+    CHAR IPstr[128];
+};
+
+class ConnectManager
+{
+public:
+    ConnectManager();
+    ~ConnectManager();
+private:
+    Cepoll mepoll;
 };
 #endif

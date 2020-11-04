@@ -5,7 +5,7 @@
 #include "condition.h"
 
 
-#define MAX_QUEUE_SIZE_IN_BYTES (1024)
+#define MAX_QUEUE_SIZE_IN_BYTES (4096)
 #define MQ_SIZE_MAX 512
 #define MQ_LENGTH_MAX 30
 #define MQ_NAME "msg queue example"
@@ -49,7 +49,7 @@ typedef struct _simple_queue_buf
 class Msg
 {
 public:
-    Msg(const CHAR* queue_name, INT32 length, INT32 type);
+    Msg(const CHAR* queue_name, INT32 length);
     ~Msg();
     bool isFullMsgQueue();
     bool isEmptyMsgQueue();
@@ -62,7 +62,6 @@ private:
     INT32 front;
     INT32 rear;
     INT32 length;
-    INT32 queue_type;
     MutexLock mutex;
     Condition cond;
     CHAR queue_name[32];

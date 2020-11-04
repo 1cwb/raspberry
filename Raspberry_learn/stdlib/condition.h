@@ -11,7 +11,7 @@ public:
 	Condition(MutexLock &mutex);
 	~Condition();
 	INT32 wait();
-        INT32 wait(ULONG nms);
+    INT32 wait(ULONG nms);
 	VOID notify();
 	VOID notifyAll();
 private:

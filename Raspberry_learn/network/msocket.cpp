@@ -57,6 +57,25 @@ namespace NetTool
     {
         return getpeername(sockfd, peeraddr, addrlen);
     }
+    CHAR* CgetPeerAddrAndPort(INT32 peerfd, CHAR* addrportStr, INT32 len)
+    {
+        struct sockaddr_storage ipaddr;
+        socklen_t addrlen = sizeof(ipaddr);//Do not forget this!!!!!!!!!!!!!!!!!!
+        INT32 port = 0;
+        memset(&ipaddr, 0, addrlen);
+        memset(addrportStr, 0, len);
+        if(getpeername(peerfd, (struct sockaddr*)&ipaddr, &addrlen) < 0)
+        {
+            memcpy(addrportStr, "UNKNOW", len);
+        }
+        else
+        {
+            NetTool::CinetNtop(ipaddr.ss_family, (ipaddr.ss_family == AF_INET ? (VOID*)&((struct sockaddr_in *)&ipaddr)->sin_addr : (VOID*)&((struct sockaddr_in6 *)&ipaddr)->sin6_addr), addrportStr, len);
+            port = NetTool::Cntohs(ipaddr.ss_family == AF_INET ? ((struct sockaddr_in *)&ipaddr)->sin_port : ((struct sockaddr_in6 *)&ipaddr)->sin6_port);
+        }
+        sprintf(addrportStr + strlen(addrportStr), ":%d", port);
+        return addrportStr;
+    }
     INT32 Cshutdown(INT32 sockfd, INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
     {
         return shutdown(sockfd, howto);
@@ -242,7 +261,10 @@ INT32 Socket::CcloseSockfd()
     sockfd = -1;
     return 0;
 }
-
+INT32 Socket::Cshutdown()
+{
+   return NetTool::Cshutdown(sockfd, SHUT_RDWR);
+}
 //
 
 NetServer::NetServer(INT32 family, INT32 type, INT32 protocol)
@@ -419,3 +441,103 @@ INT32 NetClient::CgetFamily()
 {
     return ClientFamily;
 }
+
+
+/*connect */
+Connect::Connect(INT32 fd): connectfd(fd), addrlen(0)
+{
+    memset(&ipaddr, 0, sizeof(ipaddr));
+    memset(IPstr, 0, sizeof(IPstr));
+    //family = NetTool::CgetSockFamily(connectfd);
+    this->addrlen = sizeof(ipaddr);//Do not forget this!!!!!!!!!!!!!!!!!!
+    if(getpeername(connectfd, (struct sockaddr*)&ipaddr, &this->addrlen) < 0)
+    {
+        memcpy(IPstr, "UNKNOW", sizeof("UNKNOW"));
+        port = 0;
+    }
+    else
+    {
+        family = ipaddr.ss_family;
+        NetTool::CinetNtop(family, (family == AF_INET ? (VOID*)&((struct sockaddr_in *)&ipaddr)->sin_addr : (VOID*)&((struct sockaddr_in6 *)&ipaddr)->sin6_addr), IPstr, sizeof(IPstr));
+        port = NetTool::Cntohs(family == AF_INET ? ((struct sockaddr_in *)&ipaddr)->sin_port : ((struct sockaddr_in6 *)&ipaddr)->sin6_port);
+    }
+    CHAR BUFFXX[128];
+    LOG_INFO("TONY TEST ==> %s",NetTool::CgetPeerAddrAndPort(connectfd, BUFFXX, 128));
+
+}
+Connect::Connect(INT32 fd, struct sockaddr* addr, socklen_t addrlen):connectfd(fd)
+{
+    this->addrlen = addrlen;
+    memset(&this->ipaddr, 0, sizeof(ipaddr));
+    memcpy(&this->ipaddr, addr , addrlen);
+    memset(IPstr, 0, sizeof(IPstr));
+    family = ipaddr.ss_family;
+ 
+    NetTool::CinetNtop(family, (family == AF_INET ? (VOID*)&((struct sockaddr_in *)&ipaddr)->sin_addr : (VOID*)&((struct sockaddr_in6 *)&ipaddr)->sin6_addr), IPstr, sizeof(IPstr));
+    port = NetTool::Cntohs(family == AF_INET ? ((struct sockaddr_in *)&ipaddr)->sin_port : ((struct sockaddr_in6 *)&ipaddr)->sin6_port);
+}
+Connect::Connect(const Connect& c)
+{
+    connectfd = c.CgetFD();
+    memset(&ipaddr, 0, sizeof(ipaddr));
+    memset(IPstr, 0, sizeof(IPstr));
+    //family = NetTool::CgetSockFamily(connectfd);
+    this->addrlen = sizeof(ipaddr);//Do not forget this!!!!!!!!!!!!!!!!!!
+    if(getpeername(connectfd, (struct sockaddr*)&ipaddr, &this->addrlen) < 0)
+    {
+        memcpy(IPstr, "UNKNOW", sizeof("UNKNOW"));
+        port = 0;
+    }
+    else
+    {
+        family = ipaddr.ss_family;
+        NetTool::CinetNtop(family, (family == AF_INET ? (VOID*)&((struct sockaddr_in *)&ipaddr)->sin_addr : (VOID*)&((struct sockaddr_in6 *)&ipaddr)->sin6_addr), IPstr, sizeof(IPstr));
+        port = NetTool::Cntohs(family == AF_INET ? ((struct sockaddr_in *)&ipaddr)->sin_port : ((struct sockaddr_in6 *)&ipaddr)->sin6_port);
+    }
+}
+Connect::~Connect()
+{
+
+}
+INT32 Connect::Cread(VOID* buff, size_t nbytes)
+{
+    return read(connectfd, buff, nbytes);
+}
+INT32 Connect::Cwrite(const VOID* buff, size_t nbytes)
+{
+    return write(connectfd, buff, nbytes);
+}
+INT32 Connect::CcloseConnect()
+{
+    return close(connectfd);
+}
+INT32 Connect::Cshutdown(INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
+{
+    return shutdown(connectfd, howto);
+}
+INT32 Connect::CgetFD() const
+{
+    return connectfd;
+}
+bool Connect::CgetSockaddr(struct sockaddr* addr, socklen_t* addrlen)
+{
+    *addrlen = this->addrlen;
+    memcpy(addr, &this->ipaddr , this->addrlen);
+    return true;
+}
+INT32 Connect::CgetFamily()
+{
+    return family;
+}
+CHAR* Connect::CgetAddrStr()
+{
+    return IPstr;
+}
+INT32 Connect::CgetPort()
+{
+        return port;
+}
+
+//INT32 connectfd;
+//struct sockaddr_storage ipaddr;
+//socklen_t addrlen;
