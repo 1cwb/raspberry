@@ -46,13 +46,6 @@
 #define COLOR_CYAN(str)        TEXT_COLOR_SET(TC_CYAN, str)
 #define COLOR_WHITE(str)       TEXT_COLOR_SET(TC_WHITE, str)
 
-#define DBG_INFO
-#ifdef DBG_INFO
-#define DBG(fmt, ...) printf("%s()[%d] " fmt "\n",__FUNCTION__, __LINE__,##__VA_ARGS__)
-#else
-#define DBG(fmt, ...) printf("" fmt "\n",##__VA_ARGS__)
-#endif
-
 #define LOG_INFO_NOLOCK(format, ...)    \
     Clog::getInstance()->writeLog(LEVEL_INFO, __FILE__, __LINE__, COLOR_BLUE(format), ##__VA_ARGS__)
 

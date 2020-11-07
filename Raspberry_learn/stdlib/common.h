@@ -12,6 +12,14 @@
 #include <pwd.h>
 #include <fcntl.h>
 
+#define DBG_INFO
+#ifdef DBG_INFO
+#define DBG(fmt, ...) printf("%s()[%d] " fmt "\n",__FUNCTION__, __LINE__,##__VA_ARGS__)
+#else
+#define DBG(fmt, ...) printf("" fmt "\n",##__VA_ARGS__)
+#endif
+
+
 #if __WORDSIZE == 64
 typedef long int            INT_PTR;
 typedef unsigned long       U_PTR;
