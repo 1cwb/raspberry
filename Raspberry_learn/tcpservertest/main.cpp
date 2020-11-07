@@ -15,7 +15,7 @@
 #include "msg.h"
 using namespace std;
 
-#define RECVBUFF_MAX_LEN (1024 * 16) //16k
+#define RECVBUFF_MAX_LEN (1024 * 512) //16k
 #define MAX_FD_CLIENT 1024
 
 Msg lconnect("connect", 1024);
@@ -23,9 +23,9 @@ Msg lconnect("connect", 1024);
 NetServer server(AF_INET6);
 Cepoll mepoll(1);
 MutexLock macceptMutex;
-MutexLock mClientMutex;
 Condition macceptCond(macceptMutex);
-Condition mCond(mClientMutex);
+//MutexLock mClientMutex;
+//Condition mCond(mClientMutex);
 //list<INT32> lconnect;
 bool bstop = false;
 
@@ -58,6 +58,7 @@ static VOID* workerThreadFunc(VOID* data)
     INT32 clientfd = -1;
     char buff[256];
     bool berror = false;
+    INT32 retrycnt = 0;
     CHAR *recvdata = (CHAR*)malloc(sizeof(CHAR) * RECVBUFF_MAX_LEN);
     if(recvdata == NULL)
     {
@@ -76,10 +77,10 @@ static VOID* workerThreadFunc(VOID* data)
         lconnect.pop_front();
         mClientMutex.unlock();*/
         INT32 *fd = NULL;
-        lconnect.pop((VOID**)&fd, 100, IPC_WAITTIMES);
+        lconnect.pop((VOID**)&fd, 0, IPC_BLOCK);
         if(fd == NULL) {printf("get NULL data\n\n");continue;}
         clientfd = *fd;
-        printf("pop get fd is %d\n",clientfd);
+        //printf("pop get fd is %d\n",clientfd);
         free(fd);
         memset(recvdata, 0, sizeof(CHAR) * RECVBUFF_MAX_LEN);
         while(true)
@@ -112,12 +113,12 @@ static VOID* workerThreadFunc(VOID* data)
             }
             strcat(recvdata, buff);
         }
-        LOG_INFO("RECV: %s",recvdata);
-        //if(berror)
+        if(berror)
         {
             continue;
         }
         LOG_INFO("RECV: %s",recvdata);
+        retrycnt = 0;
         while(true)
         {
             strcat(recvdata, "--server reply!");
@@ -126,7 +127,15 @@ static VOID* workerThreadFunc(VOID* data)
             {
                 if(errno == EWOULDBLOCK)
                 {
-                    sleep(10);
+                    retrycnt ++;
+                    if(retrycnt > 3)
+                    {
+                        LOG_ERROR("send error, client disconnect");
+                        mepoll.CepollCtl(EPOLL_CTL_DEL, clientfd, NULL);
+                        close(clientfd);
+                        break;
+                    }
+                    sleep(5);
                     continue;
                 }
                 else
@@ -189,9 +198,10 @@ int main(INT32 argc, CHAR** argv)
     while(!bstop)
     {
         struct epoll_event ev[1024];
-        INT32 n = mepoll.CepollWait(ev,1024, 100);
+        INT32 n = mepoll.CepollWait(ev,1024, -1);
         if(n == 0)
         {
+            LOG_INFO("what happend?");
             continue;
         }
         else if(n < 0)
@@ -218,10 +228,7 @@ int main(INT32 argc, CHAR** argv)
                     LOG_ERROR("MALLOC FAIL !!!!!!!!!!\n");
                 }
                 *nfd = ev[temp].data.fd;
-                LOG_DEBUG("*nfd is %d",*nfd);
-                LOG_DEBUG("push start ----");
                 lconnect.push(nfd, 500, IPC_WAITTIMES);
-                LOG_DEBUG("push end -----");
             }
         }
     }

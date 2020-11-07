@@ -62,11 +62,11 @@ int main(INT32 argc, CHAR** argv)
         
             while(1)
             {
-                if(send(client.getsockFD(), "123456", 7, 0) < 0)
+                if(send(client.getsockFD(), sendbuff, 1024, 0) < 0)
                 {
                     if(errno == EWOULDBLOCK)
                     {
-                        printf("Server is busy!!\n");
+                        //printf("Server is busy!!\n");
                     }
                 }
             }

@@ -70,14 +70,12 @@ bool Msg::isEmptyMsgQueue()
 }
 cntl_queue_ret Msg::push(VOID* data, ULONG nms, queue_flag flg)
 {
-    printf("start push\n");
     INT32 ret = -2;
     if(data == NULL)
     {
         printf("data is NULL\n");
         return CNTL_QUEUE_PARAM_ERROR;
     }
-    printf("*data is %d\n",*(INT32*)data);
     mutex.lock();
     if(isFullMsgQueue() && !isMsgCancel)
     {
@@ -97,7 +95,7 @@ cntl_queue_ret Msg::push(VOID* data, ULONG nms, queue_flag flg)
         }
         else
         {
-            printf("xxMsgQueue is full\n");
+            //printf("xxMsgQueue is full\n");
             mutex.unlock();
             return CNTL_QUEUE_FAIL;
         }
@@ -127,7 +125,6 @@ cntl_queue_ret Msg::pop(VOID** data, ULONG nms, queue_flag flg)
         {
             while(isEmptyMsgQueue() && !isMsgCancel)
             {
-                 printf("pop 111111111\n");
                 cond.wait();
             }
             
@@ -146,7 +143,6 @@ cntl_queue_ret Msg::pop(VOID** data, ULONG nms, queue_flag flg)
             return CNTL_QUEUE_FAIL;
         }
     }
-    printf("pop 222\n");
     if(flg == IPC_WAITTIMES && ret == ETIMEDOUT)
     {
         mutex.unlock();
@@ -160,7 +156,6 @@ cntl_queue_ret Msg::pop(VOID** data, ULONG nms, queue_flag flg)
     }
     cond.notify();
     mutex.unlock();
-    printf("pop 333\n");
     return isMsgCancel ? CNTL_QUEUE_CANCEL : CNTL_QUEUE_SUCESSFUL;
 }
 const CHAR* Msg::getQueueName()
