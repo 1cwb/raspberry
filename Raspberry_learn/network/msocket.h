@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include "common.h"
-#include "cepoll.h"
+#include "netpoll.h"
 
 class Connect;
 namespace NetTool
@@ -139,13 +139,13 @@ private:
     socklen_t addrlen;
 };
 
-class Connect
+class Channel
 {
 public:
-    Connect(INT32 fd);
-    Connect(INT32 fd, struct sockaddr* addr, socklen_t addrlen);
-    Connect(const Connect& c);
-    ~Connect();
+    Channel(INT32 fd, Netpoll*netpoll);
+    Channel(INT32 fd, struct sockaddr* addr, socklen_t addrlen, Netpoll*netpoll);
+    ~Channel();
+    Netpoll*CgetNetpoll();
     INT32 Cread(VOID* buff, size_t nbytes);
     INT32 Cwrite(const VOID* buff, size_t nbytes);
     INT32 CcloseConnect();
@@ -155,21 +155,22 @@ public:
     INT32 CgetFamily();
     CHAR* CgetAddrStr();
     INT32 CgetPort();
+    INT32 CgetEvents();
+    VOID CenableRead(bool enable);
+    VOID CenableWrite(bool enable);
+    VOID CenableReadWrite(bool enable);
+    bool CReadEanble();
+    bool CWriteEnable();
 private:
+    Channel(const Channel& c);
     INT32 connectfd;
     struct sockaddr_storage ipaddr;
     socklen_t addrlen;
     INT32 family;
     INT32 port;
     CHAR IPstr[128];
+    INT32 events;
+    Netpoll* mnetpoll;
 };
 
-class ConnectManager
-{
-public:
-    ConnectManager();
-    ~ConnectManager();
-private:
-    Cepoll mepoll;
-};
 #endif

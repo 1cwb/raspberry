@@ -444,7 +444,7 @@ INT32 NetClient::CgetFamily()
 
 
 /*connect */
-Connect::Connect(INT32 fd): connectfd(fd), addrlen(0)
+Channel::Channel(INT32 fd, Netpoll*netpoll): connectfd(fd), addrlen(0), events(0), mnetpoll(netpoll)
 {
     memset(&ipaddr, 0, sizeof(ipaddr));
     memset(IPstr, 0, sizeof(IPstr));
@@ -461,11 +461,12 @@ Connect::Connect(INT32 fd): connectfd(fd), addrlen(0)
         NetTool::CinetNtop(family, (family == AF_INET ? (VOID*)&((struct sockaddr_in *)&ipaddr)->sin_addr : (VOID*)&((struct sockaddr_in6 *)&ipaddr)->sin6_addr), IPstr, sizeof(IPstr));
         port = NetTool::Cntohs(family == AF_INET ? ((struct sockaddr_in *)&ipaddr)->sin_port : ((struct sockaddr_in6 *)&ipaddr)->sin6_port);
     }
+    mnetpoll = netpoll;
     CHAR BUFFXX[128];
     LOG_INFO("TONY TEST ==> %s",NetTool::CgetPeerAddrAndPort(connectfd, BUFFXX, 128));
 
 }
-Connect::Connect(INT32 fd, struct sockaddr* addr, socklen_t addrlen):connectfd(fd)
+Channel::Channel(INT32 fd, struct sockaddr* addr, socklen_t addrlen, Netpoll*netpoll):connectfd(fd) ,events(0), mnetpoll(netpoll)
 {
     this->addrlen = addrlen;
     memset(&this->ipaddr, 0, sizeof(ipaddr));
@@ -475,69 +476,96 @@ Connect::Connect(INT32 fd, struct sockaddr* addr, socklen_t addrlen):connectfd(f
  
     NetTool::CinetNtop(family, (family == AF_INET ? (VOID*)&((struct sockaddr_in *)&ipaddr)->sin_addr : (VOID*)&((struct sockaddr_in6 *)&ipaddr)->sin6_addr), IPstr, sizeof(IPstr));
     port = NetTool::Cntohs(family == AF_INET ? ((struct sockaddr_in *)&ipaddr)->sin_port : ((struct sockaddr_in6 *)&ipaddr)->sin6_port);
+    mnetpoll = netpoll;
 }
-Connect::Connect(const Connect& c)
-{
-    connectfd = c.CgetFD();
-    memset(&ipaddr, 0, sizeof(ipaddr));
-    memset(IPstr, 0, sizeof(IPstr));
-    //family = NetTool::CgetSockFamily(connectfd);
-    this->addrlen = sizeof(ipaddr);//Do not forget this!!!!!!!!!!!!!!!!!!
-    if(getpeername(connectfd, (struct sockaddr*)&ipaddr, &this->addrlen) < 0)
-    {
-        memcpy(IPstr, "UNKNOW", sizeof("UNKNOW"));
-        port = 0;
-    }
-    else
-    {
-        family = ipaddr.ss_family;
-        NetTool::CinetNtop(family, (family == AF_INET ? (VOID*)&((struct sockaddr_in *)&ipaddr)->sin_addr : (VOID*)&((struct sockaddr_in6 *)&ipaddr)->sin6_addr), IPstr, sizeof(IPstr));
-        port = NetTool::Cntohs(family == AF_INET ? ((struct sockaddr_in *)&ipaddr)->sin_port : ((struct sockaddr_in6 *)&ipaddr)->sin6_port);
-    }
-}
-Connect::~Connect()
+
+Channel::~Channel()
 {
 
 }
-INT32 Connect::Cread(VOID* buff, size_t nbytes)
+Netpoll* Channel::CgetNetpoll()
+{
+    return mnetpoll;
+}
+INT32 Channel::Cread(VOID* buff, size_t nbytes)
 {
     return read(connectfd, buff, nbytes);
 }
-INT32 Connect::Cwrite(const VOID* buff, size_t nbytes)
+INT32 Channel::Cwrite(const VOID* buff, size_t nbytes)
 {
     return write(connectfd, buff, nbytes);
 }
-INT32 Connect::CcloseConnect()
+INT32 Channel::CcloseConnect()
 {
     return close(connectfd);
 }
-INT32 Connect::Cshutdown(INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
+INT32 Channel::Cshutdown(INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
 {
     return shutdown(connectfd, howto);
 }
-INT32 Connect::CgetFD() const
+INT32 Channel::CgetFD() const
 {
     return connectfd;
 }
-bool Connect::CgetSockaddr(struct sockaddr* addr, socklen_t* addrlen)
+bool Channel::CgetSockaddr(struct sockaddr* addr, socklen_t* addrlen)
 {
     *addrlen = this->addrlen;
     memcpy(addr, &this->ipaddr , this->addrlen);
     return true;
 }
-INT32 Connect::CgetFamily()
+INT32 Channel::CgetFamily()
 {
     return family;
 }
-CHAR* Connect::CgetAddrStr()
+CHAR* Channel::CgetAddrStr()
 {
     return IPstr;
 }
-INT32 Connect::CgetPort()
+INT32 Channel::CgetPort()
 {
         return port;
 }
 
+INT32 Channel::CgetEvents()
+{
+    return events;
+}
+VOID Channel::CenableRead(bool enable)
+{
+    if(enable)
+    {
+        events |= EPOLLIN;
+    }
+    else
+    {
+        events &= ~EPOLLIN;
+    }
+    mnetpoll->updateChannel(this);
+}
+VOID Channel::CenableWrite(bool enable)
+{
+    if(enable)
+    {
+        events |= EPOLLOUT;
+    }
+    else
+    {
+        events &= ~EPOLLOUT;
+    }
+    mnetpoll->updateChannel(this);
+}
+VOID Channel::CenableReadWrite(bool enable)
+{
+
+}
+bool Channel::CReadEanble()
+{
+
+}
+bool Channel::CWriteEnable()
+{
+
+}
 //INT32 connectfd;
 //struct sockaddr_storage ipaddr;
 //socklen_t addrlen;

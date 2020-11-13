@@ -1,4 +1,5 @@
 #include "netpoll.h"
+#include <string.h>
 
 Netpoll::Netpoll():mepoll(1)
 {
@@ -15,7 +16,7 @@ VOID Netpoll::addChannel(Channel* ch)
 {
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
-    ev.events = ch->events();
+    ev.events = ch->CgetEvents();
     ev.data.ptr = ch;
     if(mepoll.CepollCtl(EPOLL_CTL_ADD, ch->CgetFD(), &ev) != 0)
     {
@@ -34,7 +35,7 @@ VOID Netpoll::updateChannel(Channel* ch)
 {
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
-    ev.events = ch->events();
+    ev.events = ch->CgetEvents();
     ev.data.ptr = ch;
     if(mepoll.CepollCtl(EPOLL_CTL_MOD, ch->CgetFD(), &ev) != 0)
     {
@@ -51,13 +52,13 @@ VOID Netpoll::loop_once(INT32 waitMs)
         INT32 events = activeEvs[i].events;
         if(ch != NULL)
         {
-            if(events & (POLLIN | POLLERR))
+            if(events & (EPOLLIN | EPOLLERR))
             {
-                ch->handleRead();
+                //ch->handleRead();
             }
-            else if(events & POLLOUT)
+            else if(events & EPOLLOUT)
             {
-                ch->handleWrite();
+                //ch->handleWrite();
             }
             else
             {

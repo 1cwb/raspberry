@@ -1,11 +1,11 @@
-#ifndef MEMPOLL_H
-#define MEMPOLL_H
+#ifndef MEMPOOL_H
+#define MEMPOOL_H
 #include "common.h"
 
 #define POOL_ALIGMENT 16
 #define MAX_ALLOC_FROM_POOL (4096 - 1) //page size
 #define ALIGN_PTR(p, a)   \
-    (UCHAR*) (((U_PTR)(p) + (U_PTR)(a - 1)) & ~((U_PTR)a - 1))
+    (UCHAR*) (((U_PTR)(p) + ((U_PTR)a - 1)) & ~((U_PTR)a - 1))
 
 #define ALIGNMENT sizeof(U_PTR)
 
@@ -42,10 +42,14 @@ public:
     VOID* palloc(size_t size);
     VOID* pnalloc(size_t size);
     VOID* pcalloc(size_t size);
+    bool freeLarge(VOID* ptr);
+    VOID debug();
 private:
     Mempool(const Mempool&);
     VOID operator=(Mempool&);
     VOID* memalign(size_t alignment, size_t size);
+    VOID* pallocBlock(size_t size);
+    VOID* pallocLarge(size_t size);
     pool_t *p;
 };
 

@@ -13,6 +13,8 @@
 #include <iostream>
 #include <list>
 #include "msg.h"
+#include "mempool.h"
+#include "cqueue.h"
 using namespace std;
 
 #define RECVBUFF_MAX_LEN (1024 * 512) //16k

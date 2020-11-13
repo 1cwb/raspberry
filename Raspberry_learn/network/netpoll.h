@@ -1,7 +1,8 @@
 #ifndef NETPOLL_H
 #define NETPOLL_H
 #include "cepoll.h"
-#inlcude "common.h"
+#include "common.h"
+#include "msocket.h"
 
 #define MAX_EPOLL_EVENTS 2000
 
