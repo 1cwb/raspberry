@@ -3,9 +3,11 @@
 #include "cepoll.h"
 #include "common.h"
 #include "msocket.h"
+#include "cqueue.h"
 
 #define MAX_EPOLL_EVENTS 2000
 
+class Channel;
 class Netpoll
 {
 public:
@@ -19,6 +21,7 @@ private:
     /* data */
     struct epoll_event activeEvs[MAX_EPOLL_EVENTS];
     Cepoll mepoll;
+	Cqueue cmqueue;
 };
 
 

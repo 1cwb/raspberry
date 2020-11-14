@@ -464,6 +464,7 @@ Channel::Channel(INT32 fd, Netpoll*netpoll): connectfd(fd), addrlen(0), events(0
     mnetpoll = netpoll;
     CHAR BUFFXX[128];
     LOG_INFO("TONY TEST ==> %s",NetTool::CgetPeerAddrAndPort(connectfd, BUFFXX, 128));
+	added = false;
 
 }
 Channel::Channel(INT32 fd, struct sockaddr* addr, socklen_t addrlen, Netpoll*netpoll):connectfd(fd) ,events(0), mnetpoll(netpoll)
@@ -540,7 +541,15 @@ VOID Channel::CenableRead(bool enable)
     {
         events &= ~EPOLLIN;
     }
-    mnetpoll->updateChannel(this);
+	if(!added)
+	{
+		added = true;
+		mnetpoll->addChannel(this);
+	}
+	else
+	{
+		mnetpoll->updateChannel(this);
+	}
 }
 VOID Channel::CenableWrite(bool enable)
 {
@@ -552,19 +561,45 @@ VOID Channel::CenableWrite(bool enable)
     {
         events &= ~EPOLLOUT;
     }
-    mnetpoll->updateChannel(this);
+	if(!added)
+	{
+		added = true;
+		mnetpoll->addChannel(this);
+	}
+	else
+	{
+		mnetpoll->updateChannel(this);
+	}
 }
 VOID Channel::CenableReadWrite(bool enable)
 {
-
+    if(enable)
+    {
+        events |= EPOLLOUT;
+		events |= EPOLLIN;
+    }
+    else
+    {
+        events &= ~EPOLLOUT;
+		events &= ~EPOLLIN;
+    }
+	if(!added)
+	{
+		added = true;
+		mnetpoll->addChannel(this);
+	}
+	else
+	{
+		mnetpoll->updateChannel(this);
+	}
 }
 bool Channel::CReadEanble()
 {
-
+	return events & EPOLLIN;
 }
 bool Channel::CWriteEnable()
 {
-
+	return events & EPOLLOUT;
 }
 //INT32 connectfd;
 //struct sockaddr_storage ipaddr;

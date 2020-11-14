@@ -138,12 +138,12 @@ private:
     struct sockaddr_storage ipaddr;
     socklen_t addrlen;
 };
-
+class Netpoll;
 class Channel
 {
 public:
-    Channel(INT32 fd, Netpoll*netpoll);
-    Channel(INT32 fd, struct sockaddr* addr, socklen_t addrlen, Netpoll*netpoll);
+    Channel(INT32 fd, Netpoll* netpoll);
+    Channel(INT32 fd, struct sockaddr* addr, socklen_t addrlen, Netpoll* netpoll);
     ~Channel();
     Netpoll*CgetNetpoll();
     INT32 Cread(VOID* buff, size_t nbytes);
@@ -171,6 +171,7 @@ private:
     CHAR IPstr[128];
     INT32 events;
     Netpoll* mnetpoll;
+	bool added;
 };
 
 #endif
