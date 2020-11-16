@@ -18,7 +18,10 @@ VOID Netpoll::addChannel(Channel* ch)
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
 
-    cmqueue.pushEnd(ch);
+    if(!cmqueue.pushEnd(ch))
+    {
+        DBG("Error! push ch to queue fail!!!");
+    }
     ev.events = ch->CgetEvents();
     ev.data.ptr = cmqueue.popEnd();
     if(mepoll.CepollCtl(EPOLL_CTL_ADD, ch->CgetFD(), &ev) != 0)
@@ -26,13 +29,21 @@ VOID Netpoll::addChannel(Channel* ch)
         printf("epoll ADD fail!");
     }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 }
+#include <errno.h>
 VOID Netpoll::removeChannel(Channel* ch)
 {
+    DBG("will close fd: ch->CgetFD() %d",ch->CgetFD());
     if(mepoll.CepollCtl(EPOLL_CTL_DEL, ch->CgetFD(), NULL) != 0)
     {
+        DBG("ERRNO IS %s",Cstrerror(errno));
         printf("epoll DELETE fail!");
+        //return ;
     }
-	cmqueue.remove(ch);
+    DBG("====================================");
+	if(!cmqueue.remove(ch))
+    {
+        DBG("fuck remove data fail!!!");
+    }
 }
 VOID Netpoll::updateChannel(Channel* ch)
 {

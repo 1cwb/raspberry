@@ -8,11 +8,26 @@
 #include "cselect.h"
 #include "cfileSys.h"
 #include "cfile.h"
+NetClient* mclient[1000000];
 int main(INT32 argc, CHAR** argv)
 {
     Clog::getInstance()->Init(STDOUT_FILENO,LEVEL_DEBUG);
     NetTool:: getAddrTest();
     Cfile file(stdin);
+    for(UINT32 i = 0; i  < 1000000; i++)
+    {
+        mclient[i] = new NetClient("192.168.31.28","40960");
+        if(!mclient[i]->initAddr(AF_INET,0,0,AI_CANONNAME))
+        {
+            LOG_ERROR("init client failer!");
+        }
+        if(!mclient[i]->startConnect())
+        {
+            LOG_ERROR("connect server failer!");
+        }
+        LOG_DEBUG("client num is %u",i);
+    }
+/*
     Cselect mselect;
     LOG_INFO("Now Start a TCP client");
     NetClient client("192.168.31.28","40960");
@@ -25,7 +40,8 @@ int main(INT32 argc, CHAR** argv)
     {
         LOG_ERROR("connect server failer!");
         return -1;
-    }
+    }*/
+/*
     LOG_INFO("connect successful!");
     NetTool::Csetfdblock(client.getsockFD(), false);
     INT32 selectNum = client.getsockFD();
@@ -59,19 +75,8 @@ int main(INT32 argc, CHAR** argv)
             file.Cfgets(sendbuff,1024);
             file.Cfflush();
             send(client.getsockFD(), sendbuff, 1024, 0);
-        
-            /*while(1)
-            {
-                if(send(client.getsockFD(), sendbuff, 1024, 0) < 0)
-                {
-                    if(errno == EWOULDBLOCK)
-                    {
-                        //printf("Server is busy!!\n");
-                    }
-                }
-            }*/
         }
-    }
+    }*/
     //file.Cfclose();
     return 0;
 }

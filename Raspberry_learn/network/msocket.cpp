@@ -230,6 +230,10 @@ Socket::~Socket()
 INT32 Socket::CreateSocket(INT32 family, INT32 type, INT32 protocol)
 {
     sockfd = socket(family, type, protocol);
+    if(sockfd < 0)
+    {
+        DBG("CREAT SOCK FAIL %d",sockfd);
+    }
     return sockfd;
 }
 INT32 Socket::Cconnect(const struct sockaddr* servaddr, socklen_t addrlen)
@@ -431,10 +435,12 @@ bool NetClient::initAddr(INT32 family, INT32 type, INT32 protocol, INT32 flags)
 }
 bool NetClient::startConnect()
 {
+    DBG("now connect---");
     if(Cconnect((struct sockaddr*)&ipaddr, addrlen) < 0)
     {
         return false;
     }
+    DBG("connect sucess");
     return true;
 }
 INT32 NetClient::CgetFamily()
@@ -508,9 +514,10 @@ INT32 Channel::Csent(const VOID* buff, size_t size, INT32 flags)
 INT32 Channel::CcloseConnect()
 {
     added = false;
-    mnetpoll->removeChannel(this);
     Cshutdown(SHUT_RDWR);
-    return close(connectfd);
+    //mnetpoll->removeChannel(this);
+    close(connectfd);
+    return 0;
 }
 INT32 Channel::Cshutdown(INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
 {
@@ -547,11 +554,11 @@ VOID Channel::CenableRead(bool enable)
 {
     if(enable)
     {
-        events |= EPOLLIN | EPOLLET;
+        events |= EPOLLIN | EPOLLRDHUP | EPOLLET;
     }
     else
     {
-        events &= ~(EPOLLIN | EPOLLET);
+        events &= ~(EPOLLIN | EPOLLRDHUP | EPOLLET);
     }
 	if(!added)
 	{
