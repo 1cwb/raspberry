@@ -10,19 +10,21 @@ Netpoll::Netpoll():mepoll(1), cmqueue(sizeof(Channel))
 }
 Netpoll::~Netpoll()
 {
+    cmqueue.empty();
     mepoll.Cclose();
 }
 VOID Netpoll::addChannel(Channel* ch)
 {
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
+
+    cmqueue.pushEnd(ch);
     ev.events = ch->CgetEvents();
-    ev.data.ptr = ch;
+    ev.data.ptr = cmqueue.popEnd();
     if(mepoll.CepollCtl(EPOLL_CTL_ADD, ch->CgetFD(), &ev) != 0)
     {
         printf("epoll ADD fail!");
-    }
-    cmqueue.pushEnd(ch);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 }
 VOID Netpoll::removeChannel(Channel* ch)
 {
@@ -43,32 +45,19 @@ VOID Netpoll::updateChannel(Channel* ch)
         printf("epoll MOD fail!");
     }
 }
-VOID Netpoll::loop_once(INT32 waitMs)
+INT32 Netpoll::NetepollWait(INT32 waitMs)
 {
-    INT32 lastActive = mepoll.CepollWait(activeEvs, MAX_EPOLL_EVENTS, waitMs);
-    while(--lastActive >= 0)
-    {
-        INT32 i = lastActive;
-        Channel* ch = (Channel*)activeEvs[i].data.ptr;
-        INT32 events = activeEvs[i].events;
-        if(ch != NULL)
-        {
-            if(events & (EPOLLIN | EPOLLERR))
-            {
-                //ch->handleRead();
-            }
-            else if(events & EPOLLOUT)
-            {
-                //ch->handleWrite();
-            }
-            else
-            {
-                /* code */
-            }
-            
-        }
-    }
+    INT32 active = mepoll.CepollWait(activeEvs, MAX_EPOLL_EVENTS, waitMs);
+    return (active < MAX_EPOLL_EVENTS ? active : MAX_EPOLL_EVENTS);
 }
 
+struct epoll_event* Netpoll::getEpollEvents()
+{
+    return activeEvs;
+}
+INT32 Netpoll::getConnectClientNum()
+{
+    return cmqueue.getsize();
+}
     //struct epoll_event activeEvs[MAX_EPOLL_EVENTS];
     //Cepoll mepoll;

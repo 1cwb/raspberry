@@ -4,6 +4,7 @@
 #include "common.h"
 #include "msocket.h"
 #include "cqueue.h"
+#include "thread.h"
 
 #define MAX_EPOLL_EVENTS 2000
 
@@ -16,7 +17,9 @@ public:
     VOID addChannel(Channel* ch);
     VOID removeChannel(Channel* ch);
     VOID updateChannel(Channel* ch);
-    VOID loop_once(INT32 waitMs);
+    INT32 NetepollWait(INT32 waitMs);
+    struct epoll_event* getEpollEvents();
+    INT32 getConnectClientNum();
 private:
     /* data */
     struct epoll_event activeEvs[MAX_EPOLL_EVENTS];

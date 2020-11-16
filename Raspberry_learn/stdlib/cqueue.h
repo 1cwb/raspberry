@@ -2,6 +2,7 @@
 #define CQUEUE_H
 #include "common.h"
 #include "mempool.h"
+#include "mutexlock.h"
 
 typedef struct queue_s queue_t;
 struct queue_s
@@ -26,6 +27,7 @@ public:
     VOID  popReset();
     bool remove(VOID* data);
     VOID* qalloc(size_t size);
+    INT32 getsize();
 private:
     bool isFreeMqueueEmpty();
     queue_t *mqueue;
@@ -33,5 +35,7 @@ private:
     queue_t* poptemp;
     Mempool mpool;
     INT32 itemsize;
+    MutexLock mlock;
+    INT32 size;
 };
 #endif

@@ -15,6 +15,8 @@
 #include "msg.h"
 #include "mempool.h"
 #include "cqueue.h"
+#include "netpoll.h"
+
 using namespace std;
 
 #define RECVBUFF_MAX_LEN (1024 * 512) //16k
@@ -23,7 +25,9 @@ using namespace std;
 Msg lconnect("connect", 1024);
 
 NetServer server(AF_INET6);
-Cepoll mepoll(1);
+//Cepoll mepoll(1);
+Netpoll mpoll;
+
 MutexLock macceptMutex;
 Condition macceptCond(macceptMutex);
 //MutexLock mClientMutex;
@@ -48,16 +52,14 @@ static VOID* acceptThreadFunc(VOID* data)
         {
             continue;
         }
-        struct epoll_event e;
-        e.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
-        e.data.fd = newfd;
-        mepoll.CepollCtl(EPOLL_CTL_ADD, newfd, &e);
+        Channel ch(newfd, &mpoll);
+        ch.CenableRead(true);
     }
     return NULL;
 }
 static VOID* workerThreadFunc(VOID* data)
 {
-    INT32 clientfd = -1;
+    Channel* ch = NULL;
     char buff[256];
     bool berror = false;
     INT32 retrycnt = 0;
@@ -78,17 +80,15 @@ static VOID* workerThreadFunc(VOID* data)
         clientfd = lconnect.front();
         lconnect.pop_front();
         mClientMutex.unlock();*/
-        INT32 *fd = NULL;
-        lconnect.pop((VOID**)&fd, 0, IPC_BLOCK);
-        if(fd == NULL) {printf("get NULL data\n\n");continue;}
-        clientfd = *fd;
-        //printf("pop get fd is %d\n",clientfd);
-        free(fd);
+        //INT32 *fd = NULL;
+        lconnect.pop((VOID**)&ch, 0, IPC_BLOCK);
+        if(ch == NULL) {printf("get NULL data\n\n");continue;}
+        //free(fd);
         memset(recvdata, 0, sizeof(CHAR) * RECVBUFF_MAX_LEN);
         while(true)
         {
             memset(buff, 0, sizeof(buff));
-            INT32 nRecv = recv(clientfd, buff, 256, 0);
+            INT32 nRecv = ch->Crecv( buff, 256, 0);
             if(nRecv < 0)
             {
                 if(errno == EWOULDBLOCK)
@@ -99,8 +99,7 @@ static VOID* workerThreadFunc(VOID* data)
                 else
                 {
                     LOG_ERROR("recv error, client disconnect");
-                    mepoll.CepollCtl(EPOLL_CTL_DEL, clientfd, NULL);
-                    close(clientfd);
+                    ch->CcloseConnect();
                     berror = true;
                     break;
                 }
@@ -108,8 +107,7 @@ static VOID* workerThreadFunc(VOID* data)
             else if(nRecv == 0)
             {
                 LOG_INFO("client close fd");
-                mepoll.CepollCtl(EPOLL_CTL_DEL, clientfd, NULL);
-                close(clientfd);
+                ch->CcloseConnect();
                 berror = true;
                 break;
             }
@@ -124,7 +122,7 @@ static VOID* workerThreadFunc(VOID* data)
         while(true)
         {
             strcat(recvdata, "--server reply!");
-            INT32 nSend = send(clientfd, recvdata, strlen(recvdata) + 1, 0);
+            INT32 nSend = ch->Csent(recvdata, strlen(recvdata) + 1, 0);
             if(nSend < 0)
             {
                 if(errno == EWOULDBLOCK)
@@ -133,8 +131,7 @@ static VOID* workerThreadFunc(VOID* data)
                     if(retrycnt > 3)
                     {
                         LOG_ERROR("send error, client disconnect");
-                        mepoll.CepollCtl(EPOLL_CTL_DEL, clientfd, NULL);
-                        close(clientfd);
+                        ch->CcloseConnect();
                         break;
                     }
                     sleep(5);
@@ -143,8 +140,7 @@ static VOID* workerThreadFunc(VOID* data)
                 else
                 {
                     LOG_ERROR("send error, client disconnect");
-                    mepoll.CepollCtl(EPOLL_CTL_DEL, clientfd, NULL);
-                    close(clientfd);
+                    ch->CcloseConnect();
                     break;
                 }
             }
@@ -174,20 +170,15 @@ int main(INT32 argc, CHAR** argv)
         LOG_ERROR("start to run server fail!");
         return -1;
     }
-    if(!mepoll.isCepollCanbeUse())
+    /*if(!mepoll.isCepollCanbeUse())
     {
         LOG_ERROR("init lize epoll fail");
         return -1;
-    }
-    struct epoll_event e;
-    e.events = EPOLLIN | EPOLLRDHUP;
-    e.data.fd = server.getsockFD();
-    if(mepoll.CepollCtl(EPOLL_CTL_ADD, server.getsockFD(), &e) < 0)
-    {
-        LOG_ERROR("add listenfd to epoll fail!,error %s",Cstrerror(errno));
-        return -1;
-    }
-    
+    }*/
+    Channel listenCh(server.getsockFD(), &mpoll);
+    NetTool::Csetfdblock(server.getsockFD(), false);
+    listenCh.CenableRead(true);
+
     Thread acceptThread;
     acceptThread.setThreadFunc(acceptThreadFunc,NULL);
     acceptThread.start();
@@ -199,22 +190,21 @@ int main(INT32 argc, CHAR** argv)
     }
     while(!bstop)
     {
-        struct epoll_event ev[1024];
-        INT32 n = mepoll.CepollWait(ev,1024, -1);
-        if(n == 0)
+        INT32 active = mpoll.NetepollWait(5000);
+        if(active == 0)
         {
-            LOG_INFO("what happend?");
+            LOG_INFO("Current conenct clients num Is %d",mpoll.getConnectClientNum());
             continue;
         }
-        else if(n < 0)
+        else if(active < 0)
         {
             LOG_ERROR("epoll wait error!");
             continue;
         }
-        INT32 active = MIN(n, 1024);
+        struct epoll_event *ev = mpoll.getEpollEvents();
         for(INT32 temp = 0; temp < active; temp++)
         {
-            if(ev[temp].data.fd == server.getsockFD())
+            if(((Channel*)(ev[temp].data.ptr))->CgetFD() == server.getsockFD())
             {
                 macceptCond.notify();
             }
@@ -224,17 +214,21 @@ int main(INT32 argc, CHAR** argv)
                 //lconnect.push_back(ev[temp].data.fd);
                 //mClientMutex.unlock();
                 //mCond.notify();
-                INT32* nfd = (INT32*)malloc(sizeof(INT32));
-                if(nfd == NULL)
+                //INT32* nfd = (INT32*)malloc(sizeof(INT32));
+                //if(nfd == NULL)
+                //{
+               //     LOG_ERROR("MALLOC FAIL !!!!!!!!!!\n");
+                //}
+                //*nfd = ev[temp].data.fd;
+                //lconnect.push(nfd, 500, IPC_WAITTIMES);
+                if(ev[temp].events & EPOLLIN)
                 {
-                    LOG_ERROR("MALLOC FAIL !!!!!!!!!!\n");
-                }
-                *nfd = ev[temp].data.fd;
-                lconnect.push(nfd, 500, IPC_WAITTIMES);
+                    LOG_DEBUG("ev is %p",&ev[temp]);
+                    lconnect.push(ev[temp].data.ptr, 500, IPC_WAITTIMES);
+                } 
             }
         }
     }
-    mepoll.Cclose();
     server.Cshutdown();
     server.CcloseSockfd();
     lconnect.setMsgCancel();

@@ -1,6 +1,6 @@
 #include "cqueue.h"
 #include <string.h>
-Cqueue::Cqueue(INT32 itemsize):mqueue(NULL), freemqueue(NULL), poptemp(NULL), mpool(4096), itemsize(itemsize)
+Cqueue::Cqueue(INT32 itemsize):mqueue(NULL), freemqueue(NULL), poptemp(NULL), mpool(4096), itemsize(itemsize), size(0)
 {
     /*mqueue = (queue_t*)mpool.palloc(sizeof(queue_t));
     mqueue->data = NULL;
@@ -9,14 +9,20 @@ Cqueue::Cqueue(INT32 itemsize):mqueue(NULL), freemqueue(NULL), poptemp(NULL), mp
 }
 Cqueue::~Cqueue()
 {
+    mlock.lock();
     mqueue = NULL;
     freemqueue = NULL;
+    mlock.unlock();
 }
 bool Cqueue::empty()
 {
+    mlock.lock();
     mqueue = NULL;
     freemqueue = NULL;
+    mlock.unlock();
+    size = 0;
     mpool.resetPool();
+    return true;
 }
 bool Cqueue::isempty()
 {
@@ -25,6 +31,7 @@ bool Cqueue::isempty()
 bool Cqueue::pushHead(VOID* data)
 {
     VOID* mdata = NULL;
+    mlock.lock();
     if(mqueue == NULL)
     {
         if(freemqueue == NULL)
@@ -32,11 +39,13 @@ bool Cqueue::pushHead(VOID* data)
             mqueue = (queue_t*)mpool.palloc(sizeof(queue_t));
             if(mqueue == NULL)
             {
+                mlock.unlock();
                 return false;
             }
             mdata = mpool.palloc(itemsize);
             if(mdata == NULL )
             {
+                mlock.unlock();
                 return false;
             }
         }
@@ -59,11 +68,13 @@ bool Cqueue::pushHead(VOID* data)
             temp = (queue_t*)mpool.palloc(sizeof(queue_t));
             if(temp == NULL)
             {
+                mlock.unlock();
                 return false;
             }
             mdata = mpool.palloc(itemsize);
             if(mdata == NULL )
             {
+                mlock.unlock();
                 return false;
             }
         }
@@ -80,6 +91,8 @@ bool Cqueue::pushHead(VOID* data)
         temp->prev = mqueue;
         mqueue->next = temp;
     }
+    size ++;
+    mlock.unlock();
     return true;
 }
 bool Cqueue::pushEnd(VOID* data)
@@ -90,6 +103,7 @@ bool Cqueue::pushEnd(VOID* data)
         return false;
     }
     memcpy(mdata, data, itemsize);
+    mlock.lock();
     if(mqueue == NULL)
     {
         if(freemqueue == NULL)
@@ -97,6 +111,7 @@ bool Cqueue::pushEnd(VOID* data)
             mqueue = (queue_t*)mpool.palloc(sizeof(queue_t));
             if(mqueue == NULL)
             {
+                mlock.unlock();
                 return false;
             }
         }
@@ -117,6 +132,7 @@ bool Cqueue::pushEnd(VOID* data)
             temp = (queue_t*)mpool.palloc(sizeof(queue_t));
             if(temp == NULL)
             {
+                mlock.unlock();
                 return false;
             }
         }
@@ -131,29 +147,39 @@ bool Cqueue::pushEnd(VOID* data)
         temp->prev->next = temp;
         mqueue->prev = temp;
     }
+    size ++;
+    mlock.unlock();
     return true;
 }
 VOID* Cqueue::popHead()
 {
+    mlock.lock();
     if(isempty())
     {
+        mlock.unlock();
         return NULL;
     }
+    mlock.unlock();
     return mqueue->data;
 }
 VOID* Cqueue::popEnd()
 {
+    mlock.lock();
     if(isempty())
     {
+        mlock.unlock();
         return NULL;
     }
+    mlock.unlock();
     return mqueue->prev->data;
 }
 
 bool Cqueue::remove(VOID* data)
 {
-    if(mqueue == NULL)
+    mlock.lock();
+    if(isempty())
     {
+        mlock.unlock();
         return true;
     }
     queue_t *temp = mqueue;
@@ -195,30 +221,41 @@ bool Cqueue::remove(VOID* data)
     }while(temp != mqueue);
     if(temp != NULL)
     {
+        mlock.unlock();
         return false;
     }
+    size --;
+    mlock.unlock();
     return true;
 }
 VOID* Cqueue::pop()
 {
+    mlock.lock();
     queue_t *temp = poptemp;
     if(isempty() || temp == NULL)
     {
         mpool.debug();
+        mlock.unlock();
         return NULL;
     }
     poptemp = poptemp->next;
     if(poptemp == mqueue)
     {
         poptemp = NULL;
-    }  
+    }
+    mlock.unlock();
     return temp->data;
 }
 VOID  Cqueue::popReset()
 {
+    mlock.lock();
     poptemp = mqueue;
+    mlock.unlock();
 }
-
+INT32 Cqueue::getsize()
+{
+    return size;
+}
     // bool isFreeMqueueEmpty();
     // queue_t mqueue;
     // queue_t freemqueue;

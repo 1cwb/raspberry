@@ -478,6 +478,7 @@ Channel::Channel(INT32 fd, struct sockaddr* addr, socklen_t addrlen, Netpoll*net
     NetTool::CinetNtop(family, (family == AF_INET ? (VOID*)&((struct sockaddr_in *)&ipaddr)->sin_addr : (VOID*)&((struct sockaddr_in6 *)&ipaddr)->sin6_addr), IPstr, sizeof(IPstr));
     port = NetTool::Cntohs(family == AF_INET ? ((struct sockaddr_in *)&ipaddr)->sin_port : ((struct sockaddr_in6 *)&ipaddr)->sin6_port);
     mnetpoll = netpoll;
+    added = false;
 }
 
 Channel::~Channel()
@@ -496,8 +497,19 @@ INT32 Channel::Cwrite(const VOID* buff, size_t nbytes)
 {
     return write(connectfd, buff, nbytes);
 }
+INT32 Channel::Crecv(VOID* buff, size_t size, INT32 flags)
+{
+    return recv(connectfd, buff, size, flags);
+}
+INT32 Channel::Csent(const VOID* buff, size_t size, INT32 flags)
+{
+    return send(connectfd, buff, size, flags);
+}
 INT32 Channel::CcloseConnect()
 {
+    added = false;
+    mnetpoll->removeChannel(this);
+    Cshutdown(SHUT_RDWR);
     return close(connectfd);
 }
 INT32 Channel::Cshutdown(INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/)
@@ -535,11 +547,11 @@ VOID Channel::CenableRead(bool enable)
 {
     if(enable)
     {
-        events |= EPOLLIN;
+        events |= EPOLLIN | EPOLLET;
     }
     else
     {
-        events &= ~EPOLLIN;
+        events &= ~(EPOLLIN | EPOLLET);
     }
 	if(!added)
 	{
@@ -601,6 +613,3 @@ bool Channel::CWriteEnable()
 {
 	return events & EPOLLOUT;
 }
-//INT32 connectfd;
-//struct sockaddr_storage ipaddr;
-//socklen_t addrlen;

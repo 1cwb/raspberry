@@ -15,7 +15,7 @@ int main(INT32 argc, CHAR** argv)
     Cfile file(stdin);
     Cselect mselect;
     LOG_INFO("Now Start a TCP client");
-    NetClient client("192.168.3.139","40960");
+    NetClient client("192.168.31.28","40960");
     if(!client.initAddr(AF_INET,0,0,AI_CANONNAME))
     {
         LOG_ERROR("init client failer!");
@@ -60,7 +60,7 @@ int main(INT32 argc, CHAR** argv)
             file.Cfflush();
             send(client.getsockFD(), sendbuff, 1024, 0);
         
-            while(1)
+            /*while(1)
             {
                 if(send(client.getsockFD(), sendbuff, 1024, 0) < 0)
                 {
@@ -69,7 +69,7 @@ int main(INT32 argc, CHAR** argv)
                         //printf("Server is busy!!\n");
                     }
                 }
-            }
+            }*/
         }
     }
     //file.Cfclose();

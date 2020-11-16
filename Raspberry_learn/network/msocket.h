@@ -148,6 +148,8 @@ public:
     Netpoll*CgetNetpoll();
     INT32 Cread(VOID* buff, size_t nbytes);
     INT32 Cwrite(const VOID* buff, size_t nbytes);
+    INT32 Crecv(VOID* buff, size_t size, INT32 flags);
+    INT32 Csent(const VOID* buff, size_t size, INT32 flags);
     INT32 CcloseConnect();
     INT32 Cshutdown(INT32 howto /*SHUT_RD/SHUT_WR/SHUT_RDWR*/);
     INT32 CgetFD() const;
