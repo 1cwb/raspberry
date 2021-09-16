@@ -17,9 +17,9 @@
 #endif
 #define MAX_MSG_QUEUE_SIZE 1024
 
-Msg msg_test((char*)"queuetest",MAX_MSG_QUEUE_SIZE,1);
+Msg msg_test((char*)"queuetest",MAX_MSG_QUEUE_SIZE);
 #ifdef OLED_DRIVER_ON
-Msg msg_oled((char*)"msg_oled",MAX_MSG_QUEUE_SIZE,1);
+Msg msg_oled((char*)"msg_oled",MAX_MSG_QUEUE_SIZE);
 #endif
 
 INT32 main(INT32 argc, CHAR** argv)
